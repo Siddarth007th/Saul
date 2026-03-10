@@ -8,16 +8,98 @@
   <style>
     :root {
       --bg: #f4f6fb;
+      --bg-gradient: linear-gradient(160deg, #edf2ff 0%, #f7f8fc 45%, #eef6f3 100%);
       --panel: #ffffff;
+      --sidebar-bg: #fbfcff;
+      --topbar-bg: #ffffff;
+      --messages-bg: #f9fbff;
+      --surface: #ffffff;
+      --surface-soft: #f7faff;
       --border: #d9dfeb;
       --text: #192235;
       --muted: #5f6c84;
       --primary: #0f62fe;
       --user: #e6f0ff;
+      --user-border: #c9dafc;
       --assistant: #ffffff;
       --warn: #8a4b00;
       --warn-bg: #fff4e6;
+      --warn-border: #ffd7ab;
       --danger: #b42318;
+      --summary-bg: #ffffff;
+      --summary-value-bg: #f8fbff;
+      --summary-value-border: #e1e8f5;
+      --missing-text: #67511f;
+      --missing-bg: #fff7e8;
+      --missing-border: #ffe4b8;
+      --facts-text: #2a3346;
+      --ref-panel-bg: #fbfdff;
+      --input-bg: #ffffff;
+      --app-shadow: 0 14px 30px rgba(16, 37, 68, 0.12);
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #0f1520;
+      --bg-gradient: linear-gradient(160deg, #0f1622 0%, #141f2f 48%, #182435 100%);
+      --panel: #141c28;
+      --sidebar-bg: #172130;
+      --topbar-bg: #152030;
+      --messages-bg: #111a27;
+      --surface: #1a2536;
+      --surface-soft: #223149;
+      --border: #2d3a52;
+      --text: #e5ecf8;
+      --muted: #a4b1c7;
+      --primary: #5a88ff;
+      --user: #213454;
+      --user-border: #35527a;
+      --assistant: #172334;
+      --warn: #ffd08c;
+      --warn-bg: #3a2c1a;
+      --warn-border: #6f5330;
+      --danger: #ff8f8a;
+      --summary-bg: #1a2739;
+      --summary-value-bg: #1f3046;
+      --summary-value-border: #2e445f;
+      --missing-text: #ffd59d;
+      --missing-bg: #3b2e1c;
+      --missing-border: #6f5432;
+      --facts-text: #cbd7ea;
+      --ref-panel-bg: #1e2c40;
+      --input-bg: #101a29;
+      --app-shadow: 0 16px 36px rgba(2, 6, 12, 0.55);
+    }
+
+    :root[data-theme="navy"] {
+      --bg: #e4ebf7;
+      --bg-gradient: linear-gradient(160deg, #dde7f7 0%, #e8eef9 52%, #dce6f4 100%);
+      --panel: #f5f8ff;
+      --sidebar-bg: #edf3fd;
+      --topbar-bg: #f8fbff;
+      --messages-bg: #f2f6fd;
+      --surface: #fafdff;
+      --surface-soft: #eaf1fc;
+      --border: #c1d1e7;
+      --text: #20334d;
+      --muted: #617898;
+      --primary: #2d5fa8;
+      --user: #e2ecfb;
+      --user-border: #b9cbe8;
+      --assistant: #fbfdff;
+      --warn: #7d4f07;
+      --warn-bg: #fbf2de;
+      --warn-border: #e9d3a8;
+      --danger: #a5312a;
+      --summary-bg: #f8fbff;
+      --summary-value-bg: #eef4fc;
+      --summary-value-border: #d6e1f1;
+      --missing-text: #715624;
+      --missing-bg: #fff6e6;
+      --missing-border: #efd8b3;
+      --facts-text: #304866;
+      --ref-panel-bg: #f5f9ff;
+      --input-bg: #fdfefe;
+      --app-shadow: 0 14px 30px rgba(17, 42, 78, 0.16);
     }
 
     * {
@@ -28,7 +110,7 @@
       margin: 0;
       font-family: "Segoe UI", Tahoma, sans-serif;
       color: var(--text);
-      background: linear-gradient(160deg, #edf2ff 0%, #f7f8fc 45%, #eef6f3 100%);
+      background: var(--bg-gradient);
       min-height: 100vh;
       display: flex;
       justify-content: center;
@@ -42,7 +124,7 @@
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 16px;
-      box-shadow: 0 14px 30px rgba(16, 37, 68, 0.12);
+      box-shadow: var(--app-shadow);
       display: grid;
       grid-template-columns: 300px 1fr;
       overflow: hidden;
@@ -51,7 +133,7 @@
     .sidebar {
       border-right: 1px solid var(--border);
       padding: 18px;
-      background: #fbfcff;
+      background: var(--sidebar-bg);
     }
 
     .brand {
@@ -82,23 +164,23 @@
       padding: 10px;
       border: 1px solid var(--border);
       border-radius: 10px;
-      background: #fff;
+      background: var(--surface);
       cursor: pointer;
       color: var(--text);
     }
 
     .quick button:hover {
       border-color: #bac7e6;
-      background: #f7faff;
+      background: var(--surface-soft);
     }
 
     .disclaimer {
       margin-top: 18px;
       padding: 10px;
-      background: #f7f9ff;
+      background: var(--surface-soft);
       border-radius: 10px;
       border: 1px solid var(--border);
-      color: #475168;
+      color: var(--muted);
       font-size: 0.84rem;
       line-height: 1.4;
     }
@@ -108,7 +190,7 @@
       padding: 12px;
       border: 1px solid var(--border);
       border-radius: 12px;
-      background: #ffffff;
+      background: var(--summary-bg);
     }
 
     .summary-panel h3 {
@@ -142,8 +224,8 @@
 
     .summary-value {
       color: var(--text);
-      background: #f8fbff;
-      border: 1px solid #e1e8f5;
+      background: var(--summary-value-bg);
+      border: 1px solid var(--summary-value-border);
       border-radius: 8px;
       padding: 7px 8px;
       min-height: 30px;
@@ -153,9 +235,9 @@
     .missing-fields {
       margin-top: 8px;
       font-size: 0.82rem;
-      color: #67511f;
-      background: #fff7e8;
-      border: 1px solid #ffe4b8;
+      color: var(--missing-text);
+      background: var(--missing-bg);
+      border: 1px solid var(--missing-border);
       border-radius: 8px;
       padding: 7px 8px;
       min-height: 34px;
@@ -166,10 +248,48 @@
       margin: 8px 0 0;
       padding-left: 16px;
       font-size: 0.82rem;
-      color: #2a3346;
+      color: var(--facts-text);
       max-height: 120px;
       overflow-y: auto;
       line-height: 1.3;
+    }
+
+    #chatHistoryList {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .history-empty {
+      color: var(--muted);
+      font-size: 0.82rem;
+      padding: 6px 2px;
+    }
+
+    .history-item {
+      margin-top: 0 !important;
+      width: 100%;
+      text-align: left;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.82rem;
+      line-height: 1.3;
+    }
+
+    .history-item:hover {
+      background: var(--surface-soft);
+    }
+
+    .history-item.active {
+      border-color: var(--primary);
+      box-shadow: inset 3px 0 0 0 var(--primary);
+      font-weight: 700;
     }
 
     .generate-btn {
@@ -202,7 +322,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #fff;
+      background: var(--topbar-bg);
     }
 
     .topbar h2 {
@@ -227,12 +347,43 @@
     .top-actions {
       display: flex;
       gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .theme-switch {
+      display: inline-flex;
+      gap: 6px;
+      margin-right: 6px;
+    }
+
+    .theme-btn {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.78rem;
+      padding: 5px 10px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .theme-btn:hover {
+      background: var(--surface-soft);
+    }
+
+    .theme-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #ffffff;
+      font-weight: 700;
     }
 
     .export-btn {
       border: 1px solid var(--border);
       border-radius: 8px;
-      background: #fff;
+      background: var(--surface);
       color: var(--text);
       padding: 6px 10px;
       font-size: 0.85rem;
@@ -241,13 +392,13 @@
 
     .export-btn:hover {
       border-color: #b9c5df;
-      background: #f7faff;
+      background: var(--surface-soft);
     }
 
     .messages {
       padding: 18px;
       overflow-y: auto;
-      background: #f9fbff;
+      background: var(--messages-bg);
     }
 
     .message {
@@ -263,7 +414,7 @@
     .message.user {
       margin-left: auto;
       background: var(--user);
-      border-color: #c9dafc;
+      border-color: var(--user-border);
     }
 
     .message.assistant {
@@ -272,7 +423,7 @@
 
     .message.notice {
       background: var(--warn-bg);
-      border-color: #ffd7ab;
+      border-color: var(--warn-border);
       color: var(--warn);
     }
 
@@ -289,13 +440,13 @@
 
     .ref-toggle {
       border: 1px solid var(--border);
-      background: #fff;
+      background: var(--surface);
       width: 22px;
       height: 22px;
       border-radius: 50%;
       font-size: 12px;
       line-height: 1;
-      color: #4f5a70;
+      color: var(--muted);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
@@ -305,7 +456,7 @@
 
     .ref-toggle:hover {
       border-color: #b9c5df;
-      background: #f7faff;
+      background: var(--surface-soft);
     }
 
     .ref-panel {
@@ -314,9 +465,9 @@
       padding: 9px;
       border: 1px solid var(--border);
       border-radius: 8px;
-      background: #fbfdff;
+      background: var(--ref-panel-bg);
       font-size: 0.86rem;
-      color: #273149;
+      color: var(--text);
     }
 
     .ref-panel.open {
@@ -326,7 +477,7 @@
     .ref-heading {
       font-weight: 700;
       font-size: 0.82rem;
-      color: #4f5a70;
+      color: var(--muted);
       margin-bottom: 6px;
       text-transform: uppercase;
       letter-spacing: 0.02em;
@@ -341,7 +492,7 @@
     .composer {
       padding: 12px 14px;
       border-top: 1px solid var(--border);
-      background: #fff;
+      background: var(--topbar-bg);
     }
 
     .composer form {
@@ -366,8 +517,8 @@
       height: 40px;
       border-radius: 50%;
       border: 1px solid var(--border);
-      background: #fff;
-      color: #2f3b52;
+      background: var(--surface);
+      color: var(--text);
       font-size: 22px;
       line-height: 1;
       cursor: pointer;
@@ -379,7 +530,7 @@
 
     .attach-btn:hover {
       border-color: #aebddd;
-      background: #f3f7ff;
+      background: var(--surface-soft);
     }
 
     .attach-status {
@@ -398,6 +549,8 @@
       border-radius: 10px;
       padding: 10px 12px;
       font: inherit;
+      color: var(--text);
+      background: var(--input-bg);
     }
 
     .actions {
@@ -419,7 +572,7 @@
     button.clear {
       border: 1px solid var(--border);
       border-radius: 10px;
-      background: #fff;
+      background: var(--surface);
       color: var(--text);
       padding: 9px 12px;
       cursor: pointer;
@@ -515,6 +668,11 @@
         <h2>Legal Chat</h2>
         <div class="top-meta">
           <div class="top-actions">
+            <div class="theme-switch" role="group" aria-label="Theme mode">
+              <button id="themeLightBtn" class="theme-btn" type="button" onclick="setTheme('light')">Light</button>
+              <button id="themeDarkBtn" class="theme-btn" type="button" onclick="setTheme('dark')">Dark</button>
+              <button id="themeNavyBtn" class="theme-btn" type="button" onclick="setTheme('navy')">Navy</button>
+            </div>
             <button class="export-btn" type="button" onclick="exportLatestReport('pdf')">Export PDF</button>
             <button class="export-btn" type="button" onclick="exportLatestReport('docx')">Export DOCX</button>
             <button class="export-btn" type="button" onclick="exportLatestReport('txt')">Export TXT</button>
@@ -575,8 +733,66 @@
     }
 
     const API_BASE_CANDIDATES = getApiBaseCandidates();
+    const CHAT_STORAGE_KEY = "saulgpt_chats";
+    const THEME_STORAGE_KEY = "saulgpt_theme";
+    const LEGACY_CHAT_KEYS = ["saulgpt_chat_history", "saulgpt_history"];
+    const WELCOME_MESSAGE = "Share your legal issue. I will identify the likely category, explain the general legal context, and suggest high-level next steps.";
+
+    function readStorageJson(key) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (_) {
+        localStorage.removeItem(key);
+        return null;
+      }
+    }
+
+    function normalizeTurn(raw) {
+      if (!raw || typeof raw !== "object") return null;
+      if (raw.role !== "user" && raw.role !== "assistant") return null;
+      const content = String(raw.content || "").trim();
+      if (!content) return null;
+      return { role: raw.role, content };
+    }
+
+    function normalizeChatRecord(raw) {
+      if (!raw || typeof raw !== "object") return null;
+      const historyRows = Array.isArray(raw.history) ? raw.history.map(normalizeTurn).filter(Boolean) : [];
+      return {
+        id: typeof raw.id === "string" && raw.id.trim() ? raw.id : generateChatId(),
+        title: typeof raw.title === "string" && raw.title.trim() ? raw.title.trim() : "New Chat",
+        history: historyRows,
+        messagesHtml: typeof raw.messagesHtml === "string" ? raw.messagesHtml : "",
+        timestamp: Number(raw.timestamp) || Date.now(),
+        caseWorkflow: raw.caseWorkflow && typeof raw.caseWorkflow === "object" ? raw.caseWorkflow : null,
+        lastAssistantReply: typeof raw.lastAssistantReply === "string" ? raw.lastAssistantReply : "",
+        latestReportText: typeof raw.latestReportText === "string" ? raw.latestReportText : "",
+      };
+    }
+
+    function loadSavedChats() {
+      let rows = readStorageJson(CHAT_STORAGE_KEY);
+      if (!Array.isArray(rows)) {
+        for (const legacyKey of LEGACY_CHAT_KEYS) {
+          const legacyRows = readStorageJson(legacyKey);
+          if (Array.isArray(legacyRows)) {
+            rows = legacyRows;
+            localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(legacyRows));
+            break;
+          }
+        }
+      }
+      if (!Array.isArray(rows)) return [];
+      return rows
+        .map(normalizeChatRecord)
+        .filter(Boolean)
+        .sort((a, b) => b.timestamp - a.timestamp);
+    }
+
     let history = [];
-    let savedChats = JSON.parse(localStorage.getItem('saulgpt_chats')) || [];
+    let savedChats = loadSavedChats();
     let currentChatId = null;
 
     const messagesEl = document.getElementById("messages");
@@ -596,6 +812,9 @@
     const missingFieldsEl = document.getElementById("missingFields");
     const factsListEl = document.getElementById("factsList");
     const generateReportBtnEl = document.getElementById("generateReportBtn");
+    const themeLightBtn = document.getElementById("themeLightBtn");
+    const themeDarkBtn = document.getElementById("themeDarkBtn");
+    const themeNavyBtn = document.getElementById("themeNavyBtn");
 
     let lastAssistantReply = "";
     let latestReportText = "";
@@ -746,6 +965,51 @@
       generateReportBtnEl.disabled = !(workflow.ready_for_report && !workflow.report_generated);
     }
 
+    function persistSavedChats() {
+      try {
+        localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(savedChats));
+      } catch (_) {
+        // Ignore persistence errors (private mode/quota); app remains usable.
+      }
+    }
+
+    function buildChatTitle(items) {
+      const firstUser = items.find((turn) => turn.role === "user" && String(turn.content || "").trim());
+      if (!firstUser) return "New Chat";
+      const trimmed = String(firstUser.content).trim().replace(/\s+/g, " ");
+      return trimmed.length > 42 ? `${trimmed.slice(0, 42)}...` : trimmed;
+    }
+
+    function getStoredTheme() {
+      const raw = String(localStorage.getItem(THEME_STORAGE_KEY) || "").toLowerCase();
+      return raw === "dark" || raw === "navy" ? raw : "light";
+    }
+
+    function syncThemeButtons(theme) {
+      const themeMap = {
+        light: themeLightBtn,
+        dark: themeDarkBtn,
+        navy: themeNavyBtn,
+      };
+      for (const [key, btn] of Object.entries(themeMap)) {
+        if (!btn) continue;
+        const active = key === theme;
+        btn.classList.toggle("active", active);
+        btn.setAttribute("aria-pressed", String(active));
+      }
+    }
+
+    function setTheme(theme) {
+      const normalized = theme === "dark" || theme === "navy" ? theme : "light";
+      document.documentElement.setAttribute("data-theme", normalized);
+      syncThemeButtons(normalized);
+      try {
+        localStorage.setItem(THEME_STORAGE_KEY, normalized);
+      } catch (_) {
+        // no-op
+      }
+    }
+
     function setLoading(loading) {
       sendEl.disabled = loading;
       if (statusEl) {
@@ -758,7 +1022,7 @@
       inputEl.focus();
     }
 
-    function clearChat() {
+    function clearChat(persistCurrent = true) {
       history = [];
       lastAssistantReply = "";
       latestReportText = "";
@@ -766,34 +1030,39 @@
       errorEl.textContent = "";
       attachStatusEl.textContent = "";
       resetCaseSummaryPanel();
-      addMessage("assistant", "Share your legal issue. I will identify the likely category, explain the general legal context, and suggest high-level next steps.");
+      addMessage("assistant", WELCOME_MESSAGE);
+      if (persistCurrent && currentChatId) {
+        saveCurrentChat({ allowEmpty: true, overrideTitle: "New Chat" });
+      }
     }
 
     function generateChatId() {
       return 'chat_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
     }
 
-    function saveCurrentChat() {
-      if (history.length === 0) return;
+    function saveCurrentChat(options = {}) {
+      const allowEmpty = Boolean(options.allowEmpty);
+      const overrideTitle = options.overrideTitle || "";
+      if (!allowEmpty && history.length === 0) return;
+      if (!currentChatId) currentChatId = generateChatId();
 
-      const title = history.find(m => m.role === 'user')?.content.substring(0, 30) + "..." || "New Chat";
+      const chatRecord = {
+        id: currentChatId,
+        title: overrideTitle || buildChatTitle(history),
+        history: [...history],
+        messagesHtml: messagesEl.innerHTML,
+        timestamp: Date.now(),
+        caseWorkflow: latestCaseWorkflow,
+        lastAssistantReply,
+        latestReportText,
+      };
 
-      const chatIndex = savedChats.findIndex(c => c.id === currentChatId);
+      const chatIndex = savedChats.findIndex((c) => c.id === currentChatId);
       if (chatIndex >= 0) {
-        savedChats[chatIndex].history = [...history];
-        savedChats[chatIndex].messagesHtml = messagesEl.innerHTML;
-        savedChats[chatIndex].title = title;
-      } else {
-        if (!currentChatId) currentChatId = generateChatId();
-        savedChats.unshift({
-          id: currentChatId,
-          title: title,
-          history: [...history],
-          messagesHtml: messagesEl.innerHTML,
-          timestamp: Date.now()
-        });
+        savedChats.splice(chatIndex, 1);
       }
-      localStorage.setItem('saulgpt_chats', JSON.stringify(savedChats));
+      savedChats.unshift(chatRecord);
+      persistSavedChats();
       renderChatHistory();
     }
 
@@ -802,32 +1071,48 @@
       if (!listEl) return;
 
       listEl.innerHTML = '';
-      savedChats.forEach(chat => {
-        const btn = document.createElement('button');
-        btn.textContent = chat.title;
+      if (savedChats.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "history-empty";
+        empty.textContent = "No saved threads yet.";
+        listEl.appendChild(empty);
+        return;
+      }
+
+      savedChats.forEach((chat) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `history-item${chat.id === currentChatId ? " active" : ""}`;
+        btn.textContent = chat.title || "New Chat";
         btn.onclick = () => loadChat(chat.id);
-        if (chat.id === currentChatId) {
-          btn.style.borderLeft = "4px solid var(--primary)";
-          btn.style.fontWeight = "bold";
-        }
         listEl.appendChild(btn);
       });
     }
 
     function loadChat(chatId) {
-      const chat = savedChats.find(c => c.id === chatId);
+      const chat = savedChats.find((c) => c.id === chatId);
       if (!chat) return;
 
       currentChatId = chatId;
       history = [...chat.history];
-      messagesEl.innerHTML = chat.messagesHtml;
+      messagesEl.innerHTML = chat.messagesHtml || "";
+      lastAssistantReply = chat.lastAssistantReply || "";
+      latestReportText = chat.latestReportText || "";
+      updateCaseSummaryPanel(chat.caseWorkflow || null);
 
-      // Re-attach listener if references exist
+      if (!messagesEl.innerHTML.trim()) {
+        messagesEl.innerHTML = "";
+        if (history.length === 0) {
+          addMessage("assistant", WELCOME_MESSAGE);
+        } else {
+          history.forEach((turn) => addMessage(turn.role, turn.content));
+        }
+      }
+
       const toggles = messagesEl.querySelectorAll('.ref-toggle');
-      toggles.forEach(toggle => {
+      toggles.forEach((toggle) => {
         const panel = toggle.parentElement.nextElementSibling;
         if (panel && panel.classList.contains('ref-panel')) {
-          // Need to clone and replace to avoid multiple listeners if loaded multiple times, though innerHTML replacement clears them anyway
           const newToggle = toggle.cloneNode(true);
           toggle.parentNode.replaceChild(newToggle, toggle);
           newToggle.addEventListener("click", () => {
@@ -844,8 +1129,8 @@
 
     function startNewChat() {
       currentChatId = generateChatId();
-      clearChat();
-      renderChatHistory();
+      clearChat(false);
+      saveCurrentChat({ allowEmpty: true, overrideTitle: "New Chat" });
     }
 
     function openFilePicker() {
@@ -1133,6 +1418,8 @@
       }
       await submitMessage("Generate report now.");
     }
+
+    setTheme(getStoredTheme());
 
     if (savedChats.length > 0) {
       renderChatHistory();
