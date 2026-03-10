@@ -116,3 +116,34 @@ Section 31 RERA | Complaint mechanism before Real Estate Regulatory Authority or
 
 Rent Control (State-specific) | Landlord-tenant rights including rent fixation, eviction grounds, and tenant protections are primarily governed by state rent control statutes. | State Rent Control Regimes (State Acts) | 2026-03-10
 Ownership Proof Checklist | Ownership proof commonly relies on registered sale deed/title deed, mutation records, encumbrance certificate, tax receipts, and possession evidence. | SaulGPT Property Procedure Playbook | 2026-03-10
+
+# FIR and Criminal Procedure
+Procedure - FIR Registration | An FIR (First Information Report) must be registered by police when information about a cognizable offence is received. The informant has the right to a free copy of the FIR. Under BNSS 2023 (Section 173), police cannot refuse to register an FIR for a cognizable offence. | SaulGPT Legal Procedure Playbook | 2026-03-10
+Procedure - Zero FIR | A Zero FIR can be filed at any police station regardless of jurisdiction over the offence. The station receiving the Zero FIR must forward it to the jurisdictionally competent police station promptly. | SaulGPT Legal Procedure Playbook | 2026-03-10
+Procedure - FIR Refused by Police | If police refuse to register an FIR for a cognizable offence, the aggrieved person can send a written complaint by post to the Superintendent of Police, or file a complaint directly before a Magistrate who may order police to investigate. | SaulGPT Legal Procedure Playbook | 2026-03-10
+Procedure - Cognizable vs Non-Cognizable | Cognizable offences allow police to arrest without a warrant and investigate without Magistrate order (e.g., murder, theft, robbery, assault). Non-cognizable offences require a Magistrate's permission before police can investigate (e.g., cheating, forgery). | SaulGPT Legal Procedure Playbook | 2026-03-10
+Section 173 BNSS 2023 | Registration of FIR by police officer for cognizable offences under Bharatiya Nagarik Suraksha Sanhita 2023 replacing CrPC Section 154. | India Code - Bharatiya Nagarik Suraksha Sanhita 2023 | 2024-07-01
+Section 175 BNSS 2023 | Power of police to investigate cognizable offences without order from Magistrate under BNSS 2023. | India Code - Bharatiya Nagarik Suraksha Sanhita 2023 | 2024-07-01
+
+# Bail
+Section 480 BNSS 2023 | Bail in bailable offences - when accused of bailable offence is arrested, bail is a matter of right and cannot be refused. Replaces CrPC Section 436. | India Code - Bharatiya Nagarik Suraksha Sanhita 2023 | 2024-07-01
+Section 483 BNSS 2023 | Bail in non-bailable offences - discretionary grant of bail by court considering nature and gravity of accusation, prior criminal record, likelihood of fleeing, and risk of tampering with evidence. Replaces CrPC Section 437. | India Code - Bharatiya Nagarik Suraksha Sanhita 2023 | 2024-07-01
+Section 484 BNSS 2023 | Special powers of Sessions Court and High Court regarding bail in non-bailable offences. Replaces CrPC Section 439. | India Code - Bharatiya Nagarik Suraksha Sanhita 2023 | 2024-07-01
+Section 482 BNSS 2023 | Anticipatory bail - direction by High Court or Sessions Court that if a person is arrested for specified non-bailable offences, they shall be released on bail. Replaces CrPC Section 438. | India Code - Bharatiya Nagarik Suraksha Sanhita 2023 | 2024-07-01
+Procedure - Bail Application | A bail application must contain facts of arrest, offence alleged, grounds for bail, ties to community, no-flight-risk assertion, and non-tampering undertaking. Supported by surety bonds and personal bond. | SaulGPT Legal Procedure Playbook | 2026-03-10
+
+# Employment Law
+Section 25F Industrial Disputes Act | Conditions for retrenchment of workmen including notice, compensation, and government notification requirements. | India Code - Industrial Disputes Act 1947 | 1947-04-01
+Section 4 Payment of Wages Act | Wage periods and timely payment obligations of employers. | India Code - Payment of Wages Act 1936 | 1937-03-28
+Procedure - Wrongful Termination | An employee terminated without following due process (notice period, retrenchment compensation, misconduct inquiry) can file a complaint before the Labour Commissioner or Industrial Tribunal. | SaulGPT Legal Procedure Playbook | 2026-03-10
+Section 12 Maternity Benefit Act | Protection of women from dismissal during pregnancy and maternity leave period. Employer cannot discharge a woman employee on account of her absence during maternity leave. | India Code - Maternity Benefit Act 1961 | 1963-11-01
+
+# Family Law
+Section 13 Hindu Marriage Act | Grounds for divorce under Hindu Marriage Act including adultery, cruelty, desertion, conversion, and mental disorder. | India Code - Hindu Marriage Act 1955 | 1955-05-18
+Section 125 CrPC / Section 144 BNSS | Maintenance to wives, children, and parents who are unable to maintain themselves from persons with sufficient means. | India Code - BNSS 2023 / CrPC 1973 | 2024-07-01
+Section 2 Dowry Prohibition Act | Definition and prohibition of taking or giving of dowry, punishable with imprisonment. | India Code - Dowry Prohibition Act 1961 | 1961-05-20
+Section 498A IPC | Cruelty by husband or relatives of husband towards a married woman, including harassment for dowry. | India Code - Indian Penal Code 1860 | 1860-10-06
+
+# Cheque Bounce
+Section 138 NI Act - Procedure | Dishonour of cheque is a criminal offence. A legal notice must be sent within 30 days of receiving bank memo. If payment not made within 15 days of notice, a complaint must be filed before Magistrate within 30 more days. | India Code - Negotiable Instruments Act 1881 | 1881-12-09
+
