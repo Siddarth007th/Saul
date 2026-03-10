@@ -1,0 +1,118 @@
+# Format:
+# section | text | source | effective_date
+# Note: India transitioned to new criminal codes effective 2024-07-01 (BNS/BNSS/BSA).
+# For incidents before 2024-07-01, IPC/CrPC/Evidence Act references may still be relevant historically.
+
+Criminal Law Transition Note | Bharatiya Nyaya Sanhita 2023, Bharatiya Nagarik Suraksha Sanhita 2023, and Bharatiya Sakshya Adhiniyam 2023 are effective from 2024-07-01. | India Code and Gazette of India | 2024-07-01
+
+Section 34 IPC | Acts done by several persons in furtherance of common intention. | India Code - Indian Penal Code 1860 | 1860-10-06
+Section 120B IPC | Criminal conspiracy. | India Code - Indian Penal Code 1860 | 1860-10-06
+Section 300 IPC | Murder. | India Code - Indian Penal Code 1860 | 1860-10-06
+Section 302 IPC | Punishment for murder. | India Code - Indian Penal Code 1860 | 1860-10-06
+Section 304 IPC | Culpable homicide not amounting to murder. | India Code - Indian Penal Code 1860 | 1860-10-06
+Section 307 IPC | Attempt to murder. | India Code - Indian Penal Code 1860 | 1860-10-06
+Section 323 IPC | Voluntarily causing hurt. | India Code - Indian Penal Code 1860 | 1860-10-06
+Section 324 IPC | Voluntarily causing hurt by dangerous weapons or means. | India Code - Indian Penal Code 1860 | 1860-10-06
+Section 354 IPC | Assault or criminal force to woman with intent to outrage modesty. | India Code - Indian Penal Code 1860 | 1860-10-06
+Section 376 IPC | Punishment for rape. | India Code - Indian Penal Code 1860 | 1860-10-06
+Section 378 IPC | Theft definition. | India Code - Indian Penal Code 1860 | 1860-10-06
+Section 379 IPC | Punishment for theft. | India Code - Indian Penal Code 1860 | 1860-10-06
+Section 384 IPC | Punishment for extortion. | India Code - Indian Penal Code 1860 | 1860-10-06
+Section 406 IPC | Punishment for criminal breach of trust. | India Code - Indian Penal Code 1860 | 1860-10-06
+Section 409 IPC | Criminal breach of trust by public servant, banker, merchant, or agent. | India Code - Indian Penal Code 1860 | 1860-10-06
+Section 415 IPC | Cheating definition. | India Code - Indian Penal Code 1860 | 1860-10-06
+Section 420 IPC | Cheating and dishonestly inducing delivery of property. | India Code - Indian Penal Code 1860 | 1860-10-06
+Section 441 IPC | Criminal trespass definition. | India Code - Indian Penal Code 1860 | 1860-10-06
+Section 463 IPC | Forgery definition. | India Code - Indian Penal Code 1860 | 1860-10-06
+Section 468 IPC | Forgery for purpose of cheating. | India Code - Indian Penal Code 1860 | 1860-10-06
+Section 471 IPC | Using as genuine a forged document or electronic record. | India Code - Indian Penal Code 1860 | 1860-10-06
+Section 499 IPC | Defamation definition. | India Code - Indian Penal Code 1860 | 1860-10-06
+Section 500 IPC | Punishment for defamation. | India Code - Indian Penal Code 1860 | 1860-10-06
+Section 503 IPC | Criminal intimidation definition. | India Code - Indian Penal Code 1860 | 1860-10-06
+Section 506 IPC | Punishment for criminal intimidation. | India Code - Indian Penal Code 1860 | 1860-10-06
+Section 509 IPC | Word, gesture or act intended to insult the modesty of a woman. | India Code - Indian Penal Code 1860 | 1860-10-06
+
+BNS 2023 General | Bharatiya Nyaya Sanhita 2023 is the principal substantive criminal law code replacing IPC from 2024-07-01. | India Code - Bharatiya Nyaya Sanhita 2023 | 2024-07-01
+BNSS 2023 General | Bharatiya Nagarik Suraksha Sanhita 2023 is the principal criminal procedure code replacing CrPC from 2024-07-01. | India Code - Bharatiya Nagarik Suraksha Sanhita 2023 | 2024-07-01
+BSA 2023 General | Bharatiya Sakshya Adhiniyam 2023 governs admissibility and proof of evidence replacing the Indian Evidence Act from 2024-07-01. | India Code - Bharatiya Sakshya Adhiniyam 2023 | 2024-07-01
+
+Section 154 CrPC (historical) | Information in cognizable cases and registration of FIR by police, relevant for pre-transition matters. | India Code - Code of Criminal Procedure 1973 | 1974-04-01
+Section 156 CrPC (historical) | Police officer power to investigate cognizable cases without magistrate order, relevant for pre-transition matters. | India Code - Code of Criminal Procedure 1973 | 1974-04-01
+Section 173 CrPC (historical) | Report of police officer on completion of investigation, relevant for pre-transition matters. | India Code - Code of Criminal Procedure 1973 | 1974-04-01
+Section 438 CrPC (historical) | Direction for grant of bail to person apprehending arrest, relevant for pre-transition matters. | India Code - Code of Criminal Procedure 1973 | 1974-04-01
+Section 439 CrPC (historical) | Special powers of High Court or Court of Session regarding bail, relevant for pre-transition matters. | India Code - Code of Criminal Procedure 1973 | 1974-04-01
+
+Section 138 NI Act | Dishonour of cheque for insufficiency of funds. | India Code - Negotiable Instruments Act 1881 | 1881-12-09
+Section 139 NI Act | Presumption in favour of holder in cheque dishonour prosecution. | India Code - Negotiable Instruments Act 1881 | 1881-12-09
+Section 141 NI Act | Offences by companies in cheque dishonour matters. | India Code - Negotiable Instruments Act 1881 | 1881-12-09
+
+Section 43 IT Act | Penalties and compensation for damage to computer systems and data. | India Code - Information Technology Act 2000 | 2000-10-17
+Section 66 IT Act | Computer-related offences. | India Code - Information Technology Act 2000 | 2000-10-17
+Section 66C IT Act | Punishment for identity theft. | India Code - Information Technology Act 2000 | 2000-10-17
+Section 66D IT Act | Punishment for cheating by personation using computer resources. | India Code - Information Technology Act 2000 | 2000-10-17
+Section 67 IT Act | Publishing or transmitting obscene material in electronic form. | India Code - Information Technology Act 2000 | 2000-10-17
+Section 69A IT Act | Power to block public access to information through computer resources under legal procedure. | India Code - Information Technology Act 2000 | 2000-10-17
+
+Section 12 DV Act | Application to Magistrate seeking reliefs under the Protection of Women from Domestic Violence Act. | India Code - Protection of Women from Domestic Violence Act 2005 | 2006-10-26
+Section 18 DV Act | Protection orders under Domestic Violence Act. | India Code - Protection of Women from Domestic Violence Act 2005 | 2006-10-26
+Section 20 DV Act | Monetary reliefs under Domestic Violence Act. | India Code - Protection of Women from Domestic Violence Act 2005 | 2006-10-26
+Section 22 DV Act | Compensation and damages under Domestic Violence Act. | India Code - Protection of Women from Domestic Violence Act 2005 | 2006-10-26
+
+Section 35 Consumer Protection Act 2019 | Complaint before District Consumer Disputes Redressal Commission. | India Code - Consumer Protection Act 2019 | 2020-07-20
+Section 38 Consumer Protection Act 2019 | Procedure on admission of complaint and hearing in district commission. | India Code - Consumer Protection Act 2019 | 2020-07-20
+
+Section 10 Indian Contract Act | Essentials of valid contract. | India Code - Indian Contract Act 1872 | 1872-09-01
+Section 73 Indian Contract Act | Compensation for loss or damage caused by breach of contract. | India Code - Indian Contract Act 1872 | 1872-09-01
+Section 74 Indian Contract Act | Compensation for breach where penalty is stipulated. | India Code - Indian Contract Act 1872 | 1872-09-01
+
+Section 34 Specific Relief Act | Declaratory relief by civil court. | India Code - Specific Relief Act 1963 | 1963-12-13
+Section 38 Specific Relief Act | Perpetual injunction in civil disputes. | India Code - Specific Relief Act 1963 | 1963-12-13
+Section 39 Specific Relief Act | Mandatory injunction in civil disputes. | India Code - Specific Relief Act 1963 | 1963-12-13
+
+Section 8 Arbitration and Conciliation Act | Reference to arbitration where arbitration agreement exists. | India Code - Arbitration and Conciliation Act 1996 | 1996-08-16
+Section 11 Arbitration and Conciliation Act | Appointment of arbitrators. | India Code - Arbitration and Conciliation Act 1996 | 1996-08-16
+Section 34 Arbitration and Conciliation Act | Application for setting aside arbitral award. | India Code - Arbitration and Conciliation Act 1996 | 1996-08-16
+
+Article 14 Constitution of India | Equality before law and equal protection of laws. | India Code - Constitution of India | 1950-01-26
+Article 19 Constitution of India | Protection of certain freedoms, subject to reasonable restrictions by law. | India Code - Constitution of India | 1950-01-26
+Article 21 Constitution of India | Protection of life and personal liberty except according to procedure established by law. | India Code - Constitution of India | 1950-01-26
+Article 32 Constitution of India | Right to constitutional remedies before Supreme Court. | India Code - Constitution of India | 1950-01-26
+Article 226 Constitution of India | Writ jurisdiction of High Courts for enforcement of rights and legal remedies. | India Code - Constitution of India | 1950-01-26
+
+Order VII Rule 11 CPC | Rejection of plaint in specified circumstances including lack of cause of action. | India Code - Code of Civil Procedure 1908 | 1909-01-01
+Order XXXIX Rule 1 CPC | Temporary injunction in suits where property or rights are in danger. | India Code - Code of Civil Procedure 1908 | 1909-01-01
+Order XXXIX Rule 2 CPC | Injunction to restrain breach of contract or other injury in civil suits. | India Code - Code of Civil Procedure 1908 | 1909-01-01
+
+Section 6 RTI Act | Request for obtaining information from public authority. | India Code - Right to Information Act 2005 | 2005-10-12
+Section 7 RTI Act | Disposal of information request within prescribed timelines. | India Code - Right to Information Act 2005 | 2005-10-12
+Section 8 RTI Act | Exemptions from disclosure of information. | India Code - Right to Information Act 2005 | 2005-10-12
+
+Procedure - FIR Drafting | Strong FIR/complaint drafting should include chronology, parties, place, date, evidence list, witnesses, loss, and specific relief requested. | SaulGPT Legal Procedure Playbook | 2026-03-10
+Procedure - Evidence Preservation | Preserve original electronic evidence, maintain chain of custody, keep device details, backups, hashes where feasible, and metadata. | SaulGPT Legal Procedure Playbook | 2026-03-10
+Procedure - Jurisdiction Check | Verify territorial and subject-matter jurisdiction before drafting complaints, notices, writs, or civil suits. | SaulGPT Legal Procedure Playbook | 2026-03-10
+Procedure - Bail Preparation | Bail preparation should include clean antecedents, cooperation record, flight risk response, and evidence non-tampering undertakings. | SaulGPT Legal Procedure Playbook | 2026-03-10
+Procedure - Civil Suit Checklist | Civil filing quality improves with cause of action dates, limitation analysis, valuation, court fees, jurisdiction facts, and document schedule. | SaulGPT Legal Procedure Playbook | 2026-03-10
+
+Section 105 Transfer of Property Act | Lease of immovable property defined as transfer of right to enjoy property for consideration. | India Code - Transfer of Property Act 1882 | 1882-07-01
+Section 106 Transfer of Property Act | Duration and termination notice rules for leases in absence of written contract or local law to contrary. | India Code - Transfer of Property Act 1882 | 1882-07-01
+Section 108 Transfer of Property Act | Rights and liabilities of lessor and lessee including possession, repairs, and payment obligations. | India Code - Transfer of Property Act 1882 | 1882-07-01
+Section 111 Transfer of Property Act | Determination of lease by efflux of time, forfeiture, surrender, or notice to quit. | India Code - Transfer of Property Act 1882 | 1882-07-01
+Section 53A Transfer of Property Act | Doctrine of part performance and defensive protection for transferee in possession under qualifying contract. | India Code - Transfer of Property Act 1882 | 1882-07-01
+Section 54 Transfer of Property Act | Sale of immovable property and required mode of transfer. | India Code - Transfer of Property Act 1882 | 1882-07-01
+Section 55 Transfer of Property Act | Rights and liabilities of buyer and seller in property transfer transactions. | India Code - Transfer of Property Act 1882 | 1882-07-01
+
+Section 17 Registration Act | Compulsory registration of specified documents affecting immovable property. | India Code - Registration Act 1908 | 1909-01-01
+Section 49 Registration Act | Effect of non-registration of required documents on admissibility and legal enforceability. | India Code - Registration Act 1908 | 1909-01-01
+Section 32 Registration Act | Presentation of documents for registration by executants, representatives, or authorized agents. | India Code - Registration Act 1908 | 1909-01-01
+
+Section 35 Indian Stamp Act | Instruments not duly stamped generally inadmissible in evidence unless duty and penalty are paid as prescribed. | India Code - Indian Stamp Act 1899 | 1899-07-01
+Section 3 Indian Stamp Act | Charge of stamp duty on instruments listed in the schedule. | India Code - Indian Stamp Act 1899 | 1899-07-01
+
+Section 6 Specific Relief Act | Recovery of possession of immovable property through summary suit where dispossession occurred without due process. | India Code - Specific Relief Act 1963 | 1963-12-13
+
+Section 16 RERA | Promoter obligations regarding quality and completion in registered real estate projects. | India Code - Real Estate (Regulation and Development) Act 2016 | 2017-05-01
+Section 18 RERA | Refund, compensation, and interest liabilities of promoter for project delay or defective title issues. | India Code - Real Estate (Regulation and Development) Act 2016 | 2017-05-01
+Section 31 RERA | Complaint mechanism before Real Estate Regulatory Authority or adjudicating officer. | India Code - Real Estate (Regulation and Development) Act 2016 | 2017-05-01
+
+Rent Control (State-specific) | Landlord-tenant rights including rent fixation, eviction grounds, and tenant protections are primarily governed by state rent control statutes. | State Rent Control Regimes (State Acts) | 2026-03-10
+Ownership Proof Checklist | Ownership proof commonly relies on registered sale deed/title deed, mutation records, encumbrance certificate, tax receipts, and possession evidence. | SaulGPT Property Procedure Playbook | 2026-03-10

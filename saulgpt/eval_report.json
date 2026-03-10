@@ -1,0 +1,98 @@
+{
+  "base_url": "http://127.0.0.1:8000",
+  "cases": [
+    {
+      "prompt": "Explain the difference between cheating and criminal breach of trust under Indian criminal law.",
+      "status": "ok",
+      "score": 5,
+      "max": 5,
+      "notes": [],
+      "citations": 7,
+      "reply_preview": "Short answer:\nYour query appears legally relevant.\n\nApplicable law / principles:\n- Section 406 IPC: Criminal breach of trust.\n- Section 420 IPC: Cheating and dishonestly inducing delivery of property.\n- Section 34 IPC: Acts done by several persons in furtherance of common intenti"
+    },
+    {
+      "prompt": "What details should be included in an FIR-style complaint for document forgery?",
+      "status": "ok",
+      "score": 5,
+      "max": 5,
+      "notes": [],
+      "citations": 6,
+      "reply_preview": "Short answer:\nYour query appears legally relevant.\n\nApplicable law / principles:\n- Section 34 IPC: Acts done by several persons in furtherance of common intention.\n- Section 463 IPC: Forgery.\n\nPractical next steps:\n- Prepare timeline, parties, and available evidence.\n- Clarify de"
+    },
+    {
+      "prompt": "My partner diverted client funds. Which sections may apply and what should I do first?",
+      "status": "ok",
+      "score": 5,
+      "max": 5,
+      "notes": [],
+      "citations": 7,
+      "reply_preview": "Short answer:\nYour query appears legally relevant.\n\nApplicable law / principles:\n- Section 420 IPC: Cheating and dishonestly inducing delivery of property.\n\nPractical next steps:\n- Prepare timeline, parties, and available evidence.\n- Clarify desired remedy (FIR, legal notice, com"
+    },
+    {
+      "prompt": "How should I preserve WhatsApp and email evidence for a defamation/intimidation complaint?",
+      "status": "ok",
+      "score": 5,
+      "max": 5,
+      "notes": [],
+      "citations": 7,
+      "reply_preview": "Short answer:\nYour query appears legally relevant.\n\nApplicable law / principles:\n- Section 420 IPC: Cheating and dishonestly inducing delivery of property.\n- Section 499 IPC: Defamation.\n- Section 503 IPC: Criminal intimidation.\n\nPractical next steps:\n- Prepare timeline, parties,"
+    },
+    {
+      "prompt": "Give me a lawyer-style report structure for a property fraud matter.",
+      "status": "ok",
+      "score": 5,
+      "max": 5,
+      "notes": [],
+      "citations": 4,
+      "reply_preview": "Short answer:\nYour query appears legally relevant.\n\nApplicable law / principles:\n- Section 420 IPC: Cheating and dishonestly inducing delivery of property.\n\nPractical next steps:\n- Prepare timeline, parties, and available evidence.\n- Clarify desired remedy (FIR, legal notice, com"
+    },
+    {
+      "prompt": "Can I file both criminal complaint and civil recovery for the same fraudulent transaction?",
+      "status": "ok",
+      "score": 5,
+      "max": 5,
+      "notes": [],
+      "citations": 7,
+      "reply_preview": "Short answer:\nYour query appears legally relevant.\n\nApplicable law / principles:\n- Section 420 IPC: Cheating and dishonestly inducing delivery of property.\n- Section 406 IPC: Criminal breach of trust.\n- Section 120B IPC: Criminal conspiracy.\n\nPractical next steps:\n- Prepare timel"
+    },
+    {
+      "prompt": "What documents should I attach with a police complaint for cheating?",
+      "status": "ok",
+      "score": 5,
+      "max": 5,
+      "notes": [],
+      "citations": 4,
+      "reply_preview": "Short answer:\nYour query appears legally relevant.\n\nApplicable law / principles:\n- Section 420 IPC: Cheating and dishonestly inducing delivery of property.\n\nPractical next steps:\n- Prepare timeline, parties, and available evidence.\n- Clarify desired remedy (FIR, legal notice, com"
+    },
+    {
+      "prompt": "Draft strategy: accused took INR 8 lakh and stopped responding.",
+      "status": "ok",
+      "score": 5,
+      "max": 5,
+      "notes": [],
+      "citations": 7,
+      "reply_preview": "Short answer:\nYour query appears legally relevant.\n\nApplicable law / principles:\n- Section 420 IPC: Cheating and dishonestly inducing delivery of property.\n\nPractical next steps:\n- Prepare timeline, parties, and available evidence.\n- Clarify desired remedy (FIR, legal notice, com"
+    },
+    {
+      "prompt": "What immediate legal steps should I take after receiving threats from the accused?",
+      "status": "ok",
+      "score": 5,
+      "max": 5,
+      "notes": [],
+      "citations": 1,
+      "reply_preview": "Short answer:\nYour query appears legally relevant.\n\nApplicable law / principles:\n- No specific section matched confidently\n\nPractical next steps:\n- Prepare timeline, parties, and available evidence.\n- Clarify desired remedy (FIR, legal notice, complaint, advisory).\n- Confirm juri"
+    },
+    {
+      "prompt": "Tell me a joke about cricket.",
+      "status": "ok",
+      "score": 5,
+      "max": 5,
+      "notes": [],
+      "citations": 0,
+      "reply_preview": "That appears outside my legal scope. I specialize in law and case drafting. If you reframe this as a legal question, I will help immediately. You can ask things like: 'What sections may apply?', 'How do I draft an FIR complaint?', or 'Explain legal remedies in this dispute.'"
+    }
+  ],
+  "total_score": 50,
+  "max_score": 50,
+  "percent": 100.0
+}

@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SaulGPT Chat</title>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --panel: #ffffff;
+      --border: #d9dfeb;
+      --text: #192235;
+      --muted: #5f6c84;
+      --primary: #0f62fe;
+      --user: #e6f0ff;
+      --assistant: #ffffff;
+      --warn: #8a4b00;
+      --warn-bg: #fff4e6;
+      --danger: #b42318;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: var(--text);
+      background: linear-gradient(160deg, #edf2ff 0%, #f7f8fc 45%, #eef6f3 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 1100px;
+      height: calc(100vh - 40px);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 14px 30px rgba(16, 37, 68, 0.12);
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      border-right: 1px solid var(--border);
+      padding: 18px;
+      background: #fbfcff;
+    }
+
+    .brand { margin: 0 0 6px; font-size: 1.35rem; }
+    .subtitle { margin: 0; color: var(--muted); font-size: 0.92rem; line-height: 1.4; }
+
+    .quick { margin-top: 18px; }
+    .quick h3 { margin: 0 0 10px; font-size: 0.95rem; }
+    .quick button {
+      width: 100%;
+      text-align: left;
+      margin-top: 8px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      cursor: pointer;
+      color: var(--text);
+    }
+    .quick button:hover { border-color: #bac7e6; background: #f7faff; }
+
+    .disclaimer {
+      margin-top: 18px;
+      padding: 10px;
+      background: #f7f9ff;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      color: #475168;
+      font-size: 0.84rem;
+      line-height: 1.4;
+    }
+
+    .main { display: grid; grid-template-rows: auto 1fr auto; min-height: 0; }
+
+    .topbar {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fff;
+    }
+
+    .topbar h2 { margin: 0; font-size: 1rem; font-weight: 700; }
+    .status { color: var(--muted); font-size: 0.9rem; min-height: 18px; }
+    .top-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+    .top-actions { display: flex; gap: 8px; }
+    .export-btn {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .export-btn:hover { border-color: #b9c5df; background: #f7faff; }
+
+    .messages { padding: 18px; overflow-y: auto; background: #f9fbff; }
+
+    .message {
+      max-width: 86%;
+      margin-bottom: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+
+    .message.user { margin-left: auto; background: var(--user); border-color: #c9dafc; }
+    .message.assistant { background: var(--assistant); }
+    .message.notice { background: var(--warn-bg); border-color: #ffd7ab; color: var(--warn); }
+
+    .meta {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .ref-toggle {
+      border: 1px solid var(--border);
+      background: #fff;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      font-size: 12px;
+      line-height: 1;
+      color: #4f5a70;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .ref-toggle:hover {
+      border-color: #b9c5df;
+      background: #f7faff;
+    }
+
+    .ref-panel {
+      display: none;
+      margin-top: 8px;
+      padding: 9px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fbfdff;
+      font-size: 0.86rem;
+      color: #273149;
+    }
+
+    .ref-panel.open { display: block; }
+
+    .ref-heading {
+      font-weight: 700;
+      font-size: 0.82rem;
+      color: #4f5a70;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .ref-panel ul {
+      margin: 0;
+      padding-left: 17px;
+      line-height: 1.35;
+    }
+
+    .composer { padding: 12px 14px; border-top: 1px solid var(--border); background: #fff; }
+    .composer form {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: end;
+    }
+    .hidden-file-input { display: none; }
+
+    .attach-col {
+      display: flex;
+      align-items: flex-end;
+      padding-bottom: 2px;
+    }
+
+    .attach-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: #2f3b52;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .attach-btn:hover {
+      border-color: #aebddd;
+      background: #f3f7ff;
+    }
+
+    .attach-status {
+      margin-top: 6px;
+      min-height: 18px;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 56px;
+      max-height: 160px;
+      resize: vertical;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font: inherit;
+    }
+
+    .actions { display: flex; flex-direction: column; gap: 8px; }
+
+    button.send {
+      border: 0;
+      border-radius: 10px;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+      padding: 10px 16px;
+      cursor: pointer;
+    }
+
+    button.clear {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--text);
+      padding: 9px 12px;
+      cursor: pointer;
+    }
+
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .error { color: var(--danger); font-size: 0.9rem; margin-top: 8px; min-height: 20px; }
+
+    @media (max-width: 920px) {
+      .app { grid-template-columns: 1fr; height: auto; }
+      .sidebar { border-right: 0; border-bottom: 1px solid var(--border); }
+      .main { min-height: 70vh; }
+      .composer form {
+        grid-template-columns: auto 1fr;
+      }
+      .actions {
+        grid-column: 1 / -1;
+        flex-direction: row;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <h1 class="brand">SaulGPT</h1>
+      <p class="subtitle">Ask law-related questions for general legal understanding, issue categorization, and document-check guidance.</p>
+
+      <div class="quick">
+        <h3>Quick prompts</h3>
+        <button onclick="insertPrompt('My landlord is refusing to return deposit after I vacated. What type of legal issue is this?')">Identify legal category</button>
+        <button onclick="insertPrompt('Explain the general legal context of an online payment fraud in India.')">Explain legal context</button>
+        <button onclick="insertPrompt('What documents should I gather for an employment salary dispute?')">Document checklist</button>
+      </div>
+
+      <div id="disclaimer" class="disclaimer">SaulGPT provides legal information only, not legal advice. Consult a qualified lawyer for case-specific action.</div>
+
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <h2>Legal Chat</h2>
+        <div class="top-meta">
+          <div class="top-actions">
+            <button class="export-btn" type="button" onclick="exportLatestReport('pdf')">Export PDF</button>
+            <button class="export-btn" type="button" onclick="exportLatestReport('docx')">Export DOCX</button>
+          </div>
+          <div id="status" class="status"></div>
+        </div>
+      </div>
+
+      <div id="messages" class="messages"></div>
+
+      <div class="composer">
+        <form onsubmit="sendMessage(event)">
+          <input id="docFiles" class="hidden-file-input" type="file" accept=".pdf,.docx,.txt" multiple onchange="handleFilePick(event)" />
+          <div class="attach-col">
+            <button class="attach-btn" type="button" title="Upload documents" aria-label="Upload documents" onclick="openFilePicker()">+</button>
+          </div>
+          <textarea id="input" placeholder="Describe your case facts or ask any law-related question..."></textarea>
+          <div class="actions">
+            <button id="send" class="send" type="submit">Send</button>
+            <button class="clear" type="button" onclick="clearChat()">Clear</button>
+          </div>
+        </form>
+        <div id="attachStatus" class="attach-status"></div>
+        <div id="error" class="error"></div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function normalizeBaseUrl(url) {
+      return String(url || "").trim().replace(/\/+$/, "");
+    }
+
+    function getApiBaseCandidates() {
+      const bases = [];
+      const add = (value) => {
+        const normalized = normalizeBaseUrl(value);
+        if (!normalized || bases.includes(normalized)) return;
+        bases.push(normalized);
+      };
+
+      if (window.SAULGPT_API_BASE_URL) {
+        add(window.SAULGPT_API_BASE_URL);
+      }
+
+      if (window.location.protocol === "file:") {
+        add("http://127.0.0.1:8000");
+        add("http://localhost:8000");
+      } else {
+        add(window.location.origin);
+        add(`${window.location.protocol}//127.0.0.1:8000`);
+        add(`${window.location.protocol}//localhost:8000`);
+      }
+
+      return bases;
+    }
+
+    const API_BASE_CANDIDATES = getApiBaseCandidates();
+    const history = [];
+
+    const messagesEl = document.getElementById("messages");
+    const inputEl = document.getElementById("input");
+    const sendEl = document.getElementById("send");
+    const statusEl = document.getElementById("status");
+    const errorEl = document.getElementById("error");
+    const disclaimerEl = document.getElementById("disclaimer");
+    const attachStatusEl = document.getElementById("attachStatus");
+    const docFilesEl = document.getElementById("docFiles");
+    let lastAssistantReply = "";
+
+    function addMessage(role, content, mode = "normal") {
+      const wrapper = document.createElement("div");
+      wrapper.className = `message ${role} ${mode === "notice" ? "notice" : ""}`.trim();
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      meta.textContent = role === "user" ? "You" : "SaulGPT";
+
+      const body = document.createElement("div");
+      body.textContent = content;
+
+      wrapper.appendChild(meta);
+      wrapper.appendChild(body);
+      messagesEl.appendChild(wrapper);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      if (role === "assistant" && mode !== "notice") {
+        lastAssistantReply = content;
+      }
+      return wrapper;
+    }
+
+    function attachReferencesToMessage(messageEl, citations) {
+      if (!Array.isArray(citations) || citations.length === 0) {
+        return;
+      }
+
+      const meta = messageEl.querySelector(".meta");
+      if (!meta) {
+        return;
+      }
+
+      const toggle = document.createElement("button");
+      toggle.type = "button";
+      toggle.className = "ref-toggle";
+      toggle.title = "Show references";
+      toggle.setAttribute("aria-label", "Show references");
+      toggle.setAttribute("aria-expanded", "false");
+      toggle.textContent = "i";
+
+      const panel = document.createElement("div");
+      panel.className = "ref-panel";
+
+      const heading = document.createElement("div");
+      heading.className = "ref-heading";
+      heading.textContent = "References";
+      panel.appendChild(heading);
+
+      const list = document.createElement("ul");
+      citations.forEach((c) => {
+        const kind = c.kind || c.document_type || "source";
+        const section = c.section || c.title || "Reference";
+        const source = c.source || c.act || c.filename || "Unknown";
+        const effectiveDate = c.effective_date || "";
+        const score = typeof c.score === "number" ? c.score.toFixed(2) : "";
+        const item = document.createElement("li");
+        item.textContent = `[${String(kind).toUpperCase()}] ${section} | ${source}${effectiveDate ? ` | ${effectiveDate}` : ""}${score ? ` | score: ${score}` : ""}`;
+        list.appendChild(item);
+      });
+
+      panel.appendChild(list);
+
+      toggle.addEventListener("click", () => {
+        const opened = panel.classList.toggle("open");
+        toggle.setAttribute("aria-expanded", String(opened));
+        toggle.textContent = opened ? "x" : "i";
+      });
+
+      meta.appendChild(toggle);
+      messageEl.appendChild(panel);
+    }
+
+    function setLoading(loading) {
+      sendEl.disabled = loading;
+      if (statusEl) {
+        statusEl.textContent = loading ? "SaulGPT is analyzing your message..." : "";
+      }
+    }
+
+    function insertPrompt(text) {
+      inputEl.value = text;
+      inputEl.focus();
+    }
+
+    function clearChat() {
+      history.length = 0;
+      lastAssistantReply = "";
+      messagesEl.innerHTML = "";
+      errorEl.textContent = "";
+      attachStatusEl.textContent = "";
+      addMessage("assistant", "Share your legal issue. I will identify the likely category, explain the general legal context, and suggest high-level next steps.");
+    }
+
+    function openFilePicker() {
+      docFilesEl.click();
+    }
+
+    async function handleFilePick(event) {
+      const files = event.target.files;
+      if (!files || files.length === 0) {
+        return;
+      }
+      await uploadDocuments(files);
+      event.target.value = "";
+    }
+
+    async function fetchWithFallback(paths, options) {
+      let lastError = null;
+      const tried = [];
+      for (const base of API_BASE_CANDIDATES) {
+        for (const path of paths) {
+          const endpoint = `${base}${path}`;
+          tried.push(endpoint);
+          try {
+            const response = await fetch(endpoint, options);
+            if (response.status === 404) {
+              continue;
+            }
+            return response;
+          } catch (err) {
+            lastError = err;
+          }
+        }
+      }
+      if (lastError) {
+        throw lastError;
+      }
+      throw new Error(`No compatible endpoint was found. Tried: ${tried.join(", ")}`);
+    }
+
+    async function extractErrorMessage(response) {
+      try {
+        const payload = await response.json();
+        if (typeof payload?.detail === "string") return payload.detail;
+        if (payload?.detail?.message) return String(payload.detail.message);
+        if (typeof payload?.message === "string") return payload.message;
+      } catch (_) {
+        // fall through to text
+      }
+      try {
+        const text = await response.text();
+        if (text && text.trim()) return text.trim().slice(0, 240);
+      } catch (_) {
+        // ignore
+      }
+      return `Request failed (${response.status})`;
+    }
+
+    function parseStreamText(raw) {
+      if (!raw) return "";
+      let out = "";
+      const lines = String(raw).split("\n");
+      for (const line0 of lines) {
+        const line = line0.trim();
+        if (!line) continue;
+        if (line.startsWith("0:")) {
+          const value = line.slice(2).trim();
+          try {
+            out += JSON.parse(value);
+          } catch (_) {
+            out += value;
+          }
+          continue;
+        }
+        if (line.startsWith("data:")) {
+          const data = line.slice(5).trim();
+          if (!data || data === "[DONE]") continue;
+          try {
+            const parsed = JSON.parse(data);
+            if (typeof parsed === "string") {
+              out += parsed;
+            } else if (typeof parsed?.text === "string") {
+              out += parsed.text;
+            } else if (typeof parsed?.delta === "string") {
+              out += parsed.delta;
+            }
+          } catch (_) {
+            out += data;
+          }
+        }
+      }
+      if (out.trim()) return out.trim();
+      return String(raw).replace(/^data:\s*/gm, "").replace(/\[DONE\]/g, "").trim();
+    }
+
+    function parseContentDispositionFilename(headerValue) {
+      if (!headerValue) return null;
+      const utf8Match = headerValue.match(/filename\*=UTF-8''([^;]+)/i);
+      if (utf8Match && utf8Match[1]) {
+        return decodeURIComponent(utf8Match[1]).replace(/["']/g, "");
+      }
+      const basicMatch = headerValue.match(/filename="?([^"]+)"?/i);
+      return basicMatch ? basicMatch[1] : null;
+    }
+
+    async function uploadDocuments(pickedFiles) {
+      errorEl.textContent = "";
+      attachStatusEl.textContent = "";
+
+      const files = pickedFiles || docFilesEl.files;
+      if (!files || files.length === 0) return;
+
+      const formData = new FormData();
+      for (const file of files) {
+        formData.append("files", file);
+      }
+
+      attachStatusEl.textContent = `Uploading ${files.length} file(s)...`;
+      try {
+        const response = await fetchWithFallback(
+          ["/api/documents/ingest", "/documents/ingest"],
+          { method: "POST", body: formData }
+        );
+
+        if (!response.ok) {
+          throw new Error(await extractErrorMessage(response));
+        }
+        const data = await response.json();
+
+        const ingested = Number(data.ingested_files || 0);
+        const failed = Number(data.failed_files || 0);
+        const chunks = Number(data.total_chunks || 0);
+        attachStatusEl.textContent = `Indexed ${ingested} file(s), ${chunks} chunk(s).${failed ? ` Failed: ${failed}.` : ""}`;
+        addMessage("assistant", `Indexed ${ingested} uploaded document(s) into the knowledge base. You can now ask questions using those facts.`);
+        docFilesEl.value = "";
+      } catch (err) {
+        attachStatusEl.textContent = "";
+        errorEl.textContent = friendlyFailureMessage(err && err.message);
+      }
+    }
+
+    async function exportLatestReport(format) {
+      errorEl.textContent = "";
+      if (!lastAssistantReply.trim()) {
+        errorEl.textContent = "No assistant report available to export yet.";
+        return;
+      }
+
+      try {
+        const response = await fetchWithFallback(
+          ["/api/reports/export", "/reports/export"],
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title: "SaulGPT Legal Report",
+              content: lastAssistantReply,
+              format
+            })
+          }
+        );
+
+        if (!response.ok) {
+          let message = "Export failed.";
+          try {
+            const payload = await response.json();
+            message = payload.detail || message;
+          } catch (_) {
+            // no-op: keep fallback message
+          }
+          throw new Error(message);
+        }
+
+        const blob = await response.blob();
+        const disposition = response.headers.get("content-disposition");
+        const filename = parseContentDispositionFilename(disposition) || `saulgpt-report.${format}`;
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = filename;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        errorEl.textContent = friendlyFailureMessage(err && err.message);
+      }
+    }
+
+    function friendlyFailureMessage(rawMessage) {
+      const lower = String(rawMessage || "").toLowerCase();
+      if (lower.includes("failed to fetch") || lower.includes("networkerror") || lower.includes("network error")) {
+        return "I could not connect to the backend service right now. Please make sure the FastAPI server is running, then try again.";
+      }
+      if (rawMessage && String(rawMessage).trim()) {
+        return String(rawMessage);
+      }
+      return "I could not process that request right now. Please rephrase your legal query and try again.";
+    }
+
+    async function sendMessage(event) {
+      event.preventDefault();
+      errorEl.textContent = "";
+
+      const message = inputEl.value.trim();
+      if (message.length < 2) {
+        errorEl.textContent = "Please enter a longer message.";
+        return;
+      }
+
+      addMessage("user", message);
+      history.push({ role: "user", content: message });
+      inputEl.value = "";
+      setLoading(true);
+
+      try {
+        const response = await fetchWithFallback(
+          ["/chat", "/api/chat"],
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              message,
+              history: history.slice(-20)
+            })
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(await extractErrorMessage(response));
+        }
+
+        const contentType = response.headers.get("content-type") || "";
+        let data;
+        if (contentType.includes("application/json")) {
+          data = await response.json();
+        } else {
+          const raw = await response.text();
+          data = {
+            reply: parseStreamText(raw) || "I could not generate a response.",
+            citations: [],
+            redirected_to_law: false
+          };
+        }
+
+        const assistantMessage = addMessage("assistant", data.reply, data.redirected_to_law ? "notice" : "normal");
+        history.push({ role: "assistant", content: data.reply });
+        attachReferencesToMessage(assistantMessage, data.citations || []);
+
+        if (data.disclaimer) {
+          disclaimerEl.textContent = data.disclaimer;
+        }
+      } catch (err) {
+        const msg = friendlyFailureMessage(err && err.message);
+        addMessage("assistant", msg, "notice");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    clearChat();
+  </script>
+</body>
+</html>

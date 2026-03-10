@@ -1,0 +1,8 @@
+# Format:
+# report_id | title | summary | style_notes | source | report_date
+RPT-001 | Advance Payment Fraud Complaint | Complainant paid INR 8 lakh for machinery delivery, accused stopped communication and diverted funds. | Use crisp chronology, explicit mens rea language, and clear prayer for FIR registration. | Internal SaulGPT sample archive | 2024-05-18
+RPT-002 | Criminal Breach of Trust in Partnership | Partner misappropriated pooled client collections and falsified account extracts over 5 months. | Structure as Facts, Breach Pattern, Documentary Proof, Prayer. | Internal SaulGPT sample archive | 2023-11-02
+RPT-003 | Cyber Defamation and Intimidation | False allegations were circulated through social media posts and threatening calls were made to family members. | Keep tone restrained and evidentiary, attach digital evidence chain. | Internal SaulGPT sample archive | 2024-01-09
+RPT-004 | Property Document Forgery Complaint | Signature mismatch discovered in sale deed annexures and witness statements indicate fabricated execution. | Use forensic-document language and request handwriting examination. | Internal SaulGPT sample archive | 2022-08-27
+RPT-005 | Conspiracy in Tender Manipulation | Multiple actors coordinated fake quotes to induce wrongful allocation and cause financial loss to complainant. | Emphasize coordinated acts, timeline overlaps, and beneficiary tracing. | Internal SaulGPT sample archive | 2023-03-14
+RPT-006 | Theft and Criminal Intimidation at Warehouse | Goods inventory was removed overnight and staff were threatened against filing complaints. | Detail inventory trail, witness identities, and intimidation acts separately. | Internal SaulGPT sample archive | 2024-07-22
