@@ -57,13 +57,21 @@ API_KEY = os.getenv("SAULGPT_API_KEY")
 MAX_RETRIES = int(os.getenv("OLLAMA_MAX_RETRIES", "2"))
 CHAT_CACHE_TTL_SECONDS = int(os.getenv("CHAT_CACHE_TTL_SECONDS", "900"))
 MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", "10485760"))  # 10 MB
-USE_OLLAMA_CHAT = os.getenv("USE_OLLAMA_CHAT", "0") == "1"
+OLLAMA_CHAT_MODE = os.getenv("USE_OLLAMA_CHAT", "auto").strip().lower()
 MAX_FOLLOWUP_QUESTIONS = int(os.getenv("MAX_FOLLOWUP_QUESTIONS", "2"))
+OLLAMA_DISCOVERY_TTL_SECONDS = int(os.getenv("OLLAMA_DISCOVERY_TTL_SECONDS", "45"))
+OLLAMA_TAGS_URL = (
+    OLLAMA_URL.rsplit("/api/generate", 1)[0] + "/api/tags"
+    if "/api/generate" in OLLAMA_URL
+    else OLLAMA_URL
+)
 
 SUPPORTED_UPLOAD_EXTENSIONS = {".pdf", ".docx", ".txt"}
 
 _rate_limit_store: Dict[str, deque] = defaultdict(deque)
 _chat_cache: Dict[str, Tuple[float, Dict[str, Any]]] = {}
+_ollama_available_cache: Optional[bool] = None
+_ollama_last_check_at = 0.0
 
 LAW_FOCUS_GUIDANCE = (
     "I focus on Indian legal information. If you describe the issue in legal terms, "
@@ -218,8 +226,6 @@ WORKFLOW_STAGE_LABELS: Dict[int, str] = {
 WORKFLOW_BASE_REQUIRED_SLOTS: List[str] = [
     "incident_summary",
     "parties",
-    "incident_date",
-    "incident_location",
 ]
 
 WORKFLOW_OPTIONAL_SIGNAL_SLOTS: List[str] = [
@@ -551,7 +557,8 @@ def _compose_retrieval_query(message: str, history: List[ChatTurn]) -> str:
 
 def _style_variant(message: str, history: List[ChatTurn]) -> int:
     turn_index = len(_recent_user_messages(history, limit=12))
-    return turn_index % 3
+    message_weight = sum(ord(char) for char in message[:80])
+    return (turn_index + message_weight) % 3
 
 
 def _with_article(phrase: str) -> str:
@@ -638,6 +645,18 @@ def _all_slot_questions_for_category(category: str) -> Dict[str, str]:
     return questions
 
 
+def _report_intake_rounds(history: List[ChatTurn]) -> int:
+    return sum(
+        1
+        for turn in history[-12:]
+        if turn.role == "assistant"
+        and (
+            _REPORT_INTAKE_MARKER.lower() in turn.content.lower()
+            or WORKFLOW_STAGE_LABELS[2].lower() in turn.content.lower()
+        )
+    )
+
+
 def _asked_slot_counts(history: List[ChatTurn], category: str) -> Dict[str, int]:
     questions = _all_slot_questions_for_category(category)
     counts: Dict[str, int] = {slot: 0 for slot in questions}
@@ -651,21 +670,91 @@ def _asked_slot_counts(history: List[ChatTurn], category: str) -> Dict[str, int]
     return counts
 
 
-def _slots_answered_after_question(history: List[ChatTurn], category: str) -> set[str]:
+def _explicitly_unknown(text: str) -> bool:
+    lower = text.lower()
+    return bool(
+        re.search(
+            r"\b(?:unknown|not sure|not available|dont know|don't know|na|n/a|none|no idea)\b",
+            lower,
+        )
+    )
+
+
+def _last_requested_slots(history: List[ChatTurn], category: str) -> List[str]:
     questions = _all_slot_questions_for_category(category)
-    pending_slots: set[str] = set()
-    answered_slots: set[str] = set()
-    for turn in history:
-        if turn.role == "assistant":
-            lower = turn.content.lower()
-            for slot, question in questions.items():
-                if question.lower() in lower:
-                    pending_slots.add(slot)
-        elif turn.role == "user" and pending_slots:
-            for slot in list(pending_slots):
-                answered_slots.add(slot)
-                pending_slots.discard(slot)
-    return answered_slots
+    for turn in reversed(history):
+        if turn.role != "assistant":
+            continue
+        lower = turn.content.lower()
+        slots = [slot for slot, question in questions.items() if question.lower() in lower]
+        if slots:
+            return slots
+    return []
+
+
+def _apply_direct_reply_slots(
+    message: str,
+    history: List[ChatTurn],
+    category: str,
+    slots: Dict[str, str],
+) -> None:
+    requested_slots = _last_requested_slots(history, category)
+    if not requested_slots:
+        return
+
+    raw = message.strip()
+    lower = raw.lower()
+    if not raw or raw.endswith("?"):
+        return
+
+    unknown = _explicitly_unknown(raw)
+    short_answer = len(raw.split()) <= 8
+    date_match = _DATE_CAPTURE_RE.search(raw)
+    amount_match = _AMOUNT_CAPTURE_RE.search(raw)
+
+    for slot in requested_slots:
+        if _slot_filled(slots.get(slot)):
+            continue
+
+        if unknown:
+            if slot == "witnesses":
+                slots[slot] = "No witnesses identified"
+            elif slot == "evidence":
+                slots[slot] = "No documentary evidence available yet"
+            else:
+                slots[slot] = "Not provided by user"
+            continue
+
+        if slot == "incident_date":
+            if date_match:
+                slots[slot] = date_match.group(0).strip()
+            elif short_answer:
+                slots[slot] = raw[:80]
+        elif slot == "incident_location":
+            candidate = re.sub(r"^(?:at|in|near)\s+", "", raw, flags=re.IGNORECASE).strip(" ,.-")
+            if candidate:
+                slots[slot] = candidate[:120]
+        elif slot == "witnesses":
+            if re.search(r"^(?:no|none)\b", lower):
+                slots[slot] = "No witnesses identified"
+            else:
+                slots[slot] = raw[:220]
+        elif slot == "evidence":
+            if re.search(r"^(?:no|none)\b", lower):
+                slots[slot] = "No documentary evidence available yet"
+            elif re.search(r"^(?:yes|available|have it|i have it)\b", lower):
+                slots[slot] = "User confirms documents or records are available"
+            else:
+                slots[slot] = raw[:220]
+        elif slot == "harm_or_amount":
+            if amount_match:
+                slots[slot] = amount_match.group(0).upper()
+            else:
+                slots[slot] = raw[:160]
+        elif slot in {"incident_summary", "timeline", "parties"} and short_answer:
+            continue
+        else:
+            slots[slot] = raw[:240]
 
 
 def _slot_label(slot: str) -> str:
@@ -674,6 +763,19 @@ def _slot_label(slot: str) -> str:
 
 def _missing_field_labels(slots: List[str]) -> List[str]:
     return [_slot_label(slot) for slot in slots]
+
+
+def _last_group_match(pattern: str, text: str) -> Optional[str]:
+    matches = re.findall(pattern, text, re.IGNORECASE)
+    if not matches:
+        return None
+    value = matches[-1]
+    if isinstance(value, tuple):
+        for part in value:
+            if part:
+                return str(part).strip()
+        return None
+    return str(value).strip()
 
 
 def _extract_report_slots(
@@ -750,8 +852,14 @@ def _extract_report_slots(
             slots["harm_or_amount"] = harm_match.group(1).strip()
 
     evidence_markers: List[str] = []
-    if re.search(r"\b(agreement|contract|receipt|invoice|email|message|screenshot|recording|payslip|statement)\b", joined, re.IGNORECASE):
+    if re.search(
+        r"\b(agreement|contract|receipt|invoice|email|message|screenshot|recording|payslip|statement|offer letter|attendance|hr|bank transfer|bank statement|whatsapp|chat|payment receipt)\b",
+        joined,
+        re.IGNORECASE,
+    ):
         evidence_markers.append("Documents mentioned in chat")
+    if re.search(r"\b(i have|available|attached|uploaded)\b", joined, re.IGNORECASE):
+        evidence_markers.append("User indicates supporting records are available")
     uploaded_sources = [
         str(doc.get("source", "")).strip()
         for doc in retrieval
@@ -797,80 +905,86 @@ def _extract_report_slots(
             slots["desired_outcome"] = user_goal.group(1).strip()
 
     if category == "Property or tenancy issue":
-        property_match = re.search(
+        property_value = _last_group_match(
             r"([^.!\n]*\b(property|flat|house|apartment|shop|unit|plot|land)\b[^.!\n]*)",
             joined,
-            re.IGNORECASE,
         )
-        if property_match:
-            slots["property_details"] = property_match.group(1).strip()
-        agreement_match = re.search(
+        if property_value:
+            slots["property_details"] = property_value
+        agreement_value = _last_group_match(
             r"([^.!\n]*\b(agreement|lease|rent term|vacated|vacate|tenancy)\b[^.!\n]*)",
             joined,
-            re.IGNORECASE,
         )
-        if agreement_match:
-            slots["agreement_status"] = agreement_match.group(1).strip()
+        if agreement_value:
+            slots["agreement_status"] = agreement_value
     elif category == "Employment dispute":
-        role_match = re.search(
-            r"([^.!\n]*\b(employer|employee|company|role|designation|joining)\b[^.!\n]*)",
+        role_value = _last_group_match(
+            r"([^.!\n]*\b(employer|employee|company|role|designation|joining|work as|working as)\b[^.!\n]*)",
             joined,
-            re.IGNORECASE,
         )
-        if role_match:
-            slots["employment_details"] = role_match.group(1).strip()
-        dues_match = re.search(
+        if role_value:
+            slots["employment_details"] = role_value
+        dues_value = _last_group_match(
             r"([^.!\n]*\b(salary|dues|unpaid|pending|month)\b[^.!\n]*)",
             joined,
-            re.IGNORECASE,
         )
-        if dues_match:
-            slots["dues_details"] = dues_match.group(1).strip()
+        if dues_value:
+            slots["dues_details"] = dues_value
     elif category == "Fraud or cheating concern":
-        counterparty_match = re.search(
+        counterparty_value = _last_group_match(
             r"([^.!\n]*\b(account|number|id|person|agent|broker|platform)\b[^.!\n]*)",
             joined,
-            re.IGNORECASE,
         )
-        if counterparty_match:
-            slots["counterparty_details"] = counterparty_match.group(1).strip()
-        txn_match = re.search(
+        if counterparty_value:
+            slots["counterparty_details"] = counterparty_value
+        txn_value = _last_group_match(
             r"([^.!\n]*\b(transaction|transfer|upi|bank|payment|wallet)\b[^.!\n]*)",
             joined,
-            re.IGNORECASE,
         )
-        if txn_match:
-            slots["transaction_details"] = txn_match.group(1).strip()
+        if txn_value:
+            slots["transaction_details"] = txn_value
     elif category == "Consumer issue":
-        seller_match = re.search(
+        seller_value = _last_group_match(
             r"([^.!\n]*\b(seller|provider|company|store|service)\b[^.!\n]*)",
             joined,
-            re.IGNORECASE,
         )
-        if seller_match:
-            slots["seller_service_details"] = seller_match.group(1).strip()
-        timeline_match = re.search(
+        if seller_value:
+            slots["seller_service_details"] = seller_value
+        timeline_value = _last_group_match(
             r"([^.!\n]*\b(order|purchase|delivery|defect|warranty|refund)\b[^.!\n]*)",
             joined,
-            re.IGNORECASE,
         )
-        if timeline_match:
-            slots["purchase_timeline"] = timeline_match.group(1).strip()
+        if timeline_value:
+            slots["purchase_timeline"] = timeline_value
     elif category == "Cyber or online harm":
-        platform_match = re.search(
+        platform_value = _last_group_match(
             r"([^.!\n]*\b(app|platform|account|website|social media|email)\b[^.!\n]*)",
             joined,
-            re.IGNORECASE,
         )
-        if platform_match:
-            slots["platform_details"] = platform_match.group(1).strip()
-        trail_match = re.search(
+        if platform_value:
+            slots["platform_details"] = platform_value
+        trail_value = _last_group_match(
             r"([^.!\n]*\b(screenshot|otp|transaction id|alert|log)\b[^.!\n]*)",
             joined,
-            re.IGNORECASE,
         )
-        if trail_match:
-            slots["digital_trail"] = trail_match.group(1).strip()
+        if trail_value:
+            slots["digital_trail"] = trail_value
+
+    _apply_direct_reply_slots(message=message, history=history, category=category, slots=slots)
+
+    if not slots.get("incident_location"):
+        stripped_message = re.sub(r"^(?:at|in|near)\s+", "", message.strip(), flags=re.IGNORECASE).strip(" ,.-")
+        if stripped_message and len(stripped_message.split()) <= 5 and not message.strip().endswith("?"):
+            if any(slot == "incident_location" for slot in _last_requested_slots(history, category)):
+                slots["incident_location"] = stripped_message[:120]
+        if not slots.get("incident_location"):
+            first_clause = re.split(r"[.!?\n]", message.strip(), maxsplit=1)[0].strip(" ,.-")
+            if (
+                first_clause
+                and len(first_clause.split()) <= 4
+                and re.fullmatch(r"[A-Za-z][A-Za-z .,-]{1,80}", first_clause)
+            ):
+                slots["incident_location"] = first_clause[:120]
 
     if re.search(r"\b(not sure|unknown|not available|dont know|don't know|na|n/a)\b", lower):
         slots.setdefault("incident_date", "Not specified by user")
@@ -887,24 +1001,37 @@ def _slot_filled(value: Optional[str], min_chars: int = 3) -> bool:
 
 def _missing_report_slots(category: str, slots: Dict[str, str]) -> List[str]:
     missing: List[str] = []
-    for slot in (*WORKFLOW_BASE_REQUIRED_SLOTS, "evidence"):
+    for slot in WORKFLOW_BASE_REQUIRED_SLOTS:
         if not _slot_filled(slots.get(slot)):
             missing.append(slot)
+
+    if not (_slot_filled(slots.get("timeline")) or _slot_filled(slots.get("incident_date"))):
+        missing.append("incident_date")
+
+    category_slots = _REPORT_REQUIRED_BY_CATEGORY.get(category, [])
+    if category_slots and not any(_slot_filled(slots.get(slot)) for slot in category_slots):
+        missing.append(category_slots[0])
 
     if not (
         _slot_filled(slots.get("harm_or_amount"))
         or _slot_filled(slots.get("desired_outcome"))
+        or _slot_filled(slots.get("evidence"))
     ):
-        missing.append("harm_or_amount")
+        missing.append("desired_outcome")
 
-    for slot in _REPORT_REQUIRED_BY_CATEGORY.get(category, []):
-        if not _slot_filled(slots.get(slot)):
-            missing.append(slot)
-    if not (_slot_filled(slots.get("timeline")) or _slot_filled(slots.get("incident_date"))):
-        missing.append("timeline")
-    if not _slot_filled(slots.get("witnesses")):
-        missing.append("witnesses")
-    return missing
+    if not _slot_filled(slots.get("incident_location")) and not any(
+        _slot_filled(slots.get(slot)) for slot in category_slots
+    ):
+        missing.append("incident_location")
+
+    seen: set[str] = set()
+    ordered: List[str] = []
+    for slot in missing:
+        if slot in seen:
+            continue
+        seen.add(slot)
+        ordered.append(slot)
+    return ordered
 
 
 def _resolve_missing_report_slots(
@@ -914,14 +1041,10 @@ def _resolve_missing_report_slots(
 ) -> List[str]:
     missing = _missing_report_slots(category, slots)
     asked_counts = _asked_slot_counts(history, category)
-    answered_after_ask = _slots_answered_after_question(history, category)
 
     resolved_missing: List[str] = []
     for slot in missing:
         if _slot_filled(slots.get(slot)):
-            continue
-        if slot in answered_after_ask:
-            slots[slot] = "Not provided by user"
             continue
         if asked_counts.get(slot, 0) >= 2:
             slots[slot] = "Not provided by user"
@@ -952,17 +1075,80 @@ def _has_minimum_facts_for_report(
     has_case_detail = any(
         _slot_filled(slots.get(slot))
         for slot in _REPORT_REQUIRED_BY_CATEGORY.get(category, [])
+    ) or any(
+        _slot_filled(slots.get(slot))
+        for slot in ("harm_or_amount", "desired_outcome", "evidence", "incident_location")
     )
-    has_supporting = _slot_filled(slots.get("evidence")) or _slot_filled(slots.get("witnesses"))
+    has_context = any(
+        _slot_filled(slots.get(slot))
+        for slot in ("incident_date", "timeline", "incident_location")
+    )
     wants_report_now = bool(_REPORT_GENERATE_RE.search(message.lower()))
 
-    if has_core and has_supporting and score >= 6:
+    if has_core and has_context and has_case_detail and score >= 5:
         return True
-    if wants_report_now and has_core and score >= 4:
+    if wants_report_now and has_core and (has_case_detail or has_context) and score >= 4:
         return True
-    if has_core and has_case_detail and has_supporting and len(missing_slots) <= 2:
+    if has_core and has_case_detail and len(missing_slots) <= 2 and score >= 4:
         return True
     return False
+
+
+def _should_force_report_generation(
+    category: str,
+    slots: Dict[str, str],
+    message: str,
+    history: List[ChatTurn],
+) -> bool:
+    has_core = _slot_filled(slots.get("incident_summary")) and _slot_filled(slots.get("parties"))
+    if not has_core:
+        return False
+
+    intake_rounds = _report_intake_rounds(history)
+    score = sum(
+        1
+        for slot in (
+            "incident_summary",
+            "parties",
+            "incident_date",
+            "incident_location",
+            "timeline",
+            "harm_or_amount",
+            "desired_outcome",
+            "evidence",
+            *_REPORT_REQUIRED_BY_CATEGORY.get(category, []),
+        )
+        if _slot_filled(slots.get(slot))
+    )
+    requested_now = bool(_REPORT_GENERATE_RE.search(message.lower()))
+
+    if requested_now and intake_rounds >= 1 and score >= 4:
+        return True
+    if intake_rounds >= 2 and score >= 4:
+        return True
+    return False
+
+
+def _finalize_report_slots(category: str, slots: Dict[str, str]) -> Dict[str, str]:
+    finalized = dict(slots)
+    defaults = {
+        "incident_date": "Not specified by user",
+        "incident_location": "Not specified by user",
+        "timeline": "Timeline not fully specified by user",
+        "harm_or_amount": "Loss or amount not clearly specified",
+        "evidence": "No document evidence specified by user",
+        "witnesses": "No witness information provided",
+        "desired_outcome": "Desired outcome not clearly specified",
+    }
+    for slot, value in defaults.items():
+        if not _slot_filled(finalized.get(slot)):
+            finalized[slot] = value
+
+    for slot in _REPORT_REQUIRED_BY_CATEGORY.get(category, []):
+        if not _slot_filled(finalized.get(slot)):
+            finalized[slot] = "Not provided by user"
+
+    return finalized
 
 
 def _next_report_questions(
@@ -1063,64 +1249,222 @@ def _build_report_intake_reply(
     return (
         f"{WORKFLOW_STAGE_LABELS[2]}\n"
         f"Category: {category}\n"
-        f"Captured facts:\n{compact_summary}\n\n"
-        f"Still needed: {missing_compact}\n"
-        "Answer these next (short bullets):\n"
+        f"I have already captured these facts:\n{compact_summary}\n\n"
+        f"To finish the report, I still need: {missing_compact}\n"
+        "Reply with short bullets or one compact paragraph:\n"
         f"{numbered_questions}\n\n"
-        "I will generate the report as soon as facts are sufficient."
+        "Once I have that, I will move straight to the report."
     )
+
+
+def _is_placeholder_value(value: Optional[str]) -> bool:
+    if not value:
+        return True
+    normalized = value.strip().lower()
+    placeholders = (
+        "not provided by user",
+        "not specified by user",
+        "timeline not fully specified by user",
+        "loss or amount not clearly specified",
+        "no document evidence specified by user",
+        "no witness information provided",
+        "desired outcome not clearly specified",
+        "no documentary evidence available yet",
+        "no witnesses identified",
+    )
+    return any(phrase in normalized for phrase in placeholders)
+
+
+def _report_matter_focus(category: str, slots: Dict[str, str]) -> str:
+    text_blob = " ".join(str(slots.get(key, "")) for key in slots).lower()
+    if category == "Property or tenancy issue":
+        if "deposit" in text_blob:
+            return "Rental deposit dispute"
+        if any(token in text_blob for token in ("ownership", "title", "mutation", "deed", "land")):
+            return "Ownership / title matter"
+        if any(token in text_blob for token in ("eviction", "vacate", "tenant", "landlord")):
+            return "Tenancy / possession dispute"
+        return "Property / tenancy matter"
+    if category == "Employment dispute":
+        if any(token in text_blob for token in ("salary", "unpaid", "dues", "payslip")):
+            return "Unpaid salary / dues matter"
+        if any(token in text_blob for token in ("termination", "dismissal", "relieving")):
+            return "Employment separation dispute"
+        return "Employment matter"
+    if category == "Consumer issue":
+        if any(token in text_blob for token in ("defect", "defective", "warranty")):
+            return "Defective product or service dispute"
+        if "refund" in text_blob:
+            return "Refund dispute"
+        return "Consumer matter"
+    if category == "Fraud or cheating concern":
+        return "Fraud / cheating matter"
+    if category == "Cyber or online harm":
+        if any(token in text_blob for token in ("upi", "otp", "bank", "account")):
+            return "Online payment / account harm matter"
+        return "Cyber / online harm matter"
+    if category == "Family or relationship dispute":
+        return "Family / relationship matter"
+    if category == "Contract or payment dispute":
+        return "Contract / payment matter"
+    if category == "FIR and police complaint":
+        return "Police complaint intake matter"
+    if category == "Bail and custody":
+        return "Custody / bail support matter"
+    return category
+
+
+def _report_title(category: str, slots: Dict[str, str]) -> str:
+    focus = _report_matter_focus(category, slots)
+    return f"SaulGPT Structured Legal Intake Report - {focus}"
+
+
+def _report_case_snapshot(category: str, slots: Dict[str, str]) -> List[str]:
+    snapshot = [
+        f"- Matter focus: {_report_matter_focus(category, slots)}",
+        f"- Parties: {slots.get('parties', 'Not fully specified')}",
+        f"- Location: {slots.get('incident_location', 'Not specified by user')}",
+        f"- Date / period: {slots.get('incident_date', 'Not specified by user')}",
+    ]
+    if not _is_placeholder_value(slots.get("harm_or_amount")):
+        snapshot.append(f"- Reported loss / amount: {slots.get('harm_or_amount')}")
+    if not _is_placeholder_value(slots.get("desired_outcome")):
+        snapshot.append(f"- User objective: {slots.get('desired_outcome')}")
+    return snapshot
+
+
+def _category_specific_heading(category: str) -> str:
+    headings = {
+        "Property or tenancy issue": "Property / Tenancy Details",
+        "Employment dispute": "Employment Details",
+        "Fraud or cheating concern": "Counterparty and Transaction Details",
+        "Consumer issue": "Seller / Service Details",
+        "Cyber or online harm": "Digital Account and Trail Details",
+        "Family or relationship dispute": "Relationship Context",
+        "Contract or payment dispute": "Contract / Payment Context",
+    }
+    return headings.get(category, "Category-Specific Details")
+
+
+def _category_specific_lines(category: str, slots: Dict[str, str]) -> List[str]:
+    slot_map = {
+        "Property or tenancy issue": [
+            ("property_details", "Property details"),
+            ("agreement_status", "Agreement / tenancy status"),
+        ],
+        "Employment dispute": [
+            ("employment_details", "Employment details"),
+            ("dues_details", "Pending dues details"),
+        ],
+        "Fraud or cheating concern": [
+            ("counterparty_details", "Counterparty details"),
+            ("transaction_details", "Transaction details"),
+        ],
+        "Consumer issue": [
+            ("seller_service_details", "Seller / service details"),
+            ("purchase_timeline", "Purchase timeline"),
+        ],
+        "Cyber or online harm": [
+            ("platform_details", "Platform / account details"),
+            ("digital_trail", "Digital trail"),
+        ],
+    }
+    lines: List[str] = []
+    for slot, label in slot_map.get(category, []):
+        value = slots.get(slot)
+        if value and not _is_placeholder_value(value):
+            lines.append(f"- {label}: {value}")
+    if not lines:
+        lines.append("- No additional category-specific detail was captured.")
+    return lines
+
+
+def _report_issue_observations(category: str, slots: Dict[str, str]) -> List[str]:
+    observations: List[str] = []
+    if category == "Property or tenancy issue":
+        observations.append("- The matter appears to turn on possession or tenancy record, money trail, and move-out / notice chronology.")
+        if "deposit" in " ".join(str(slots.get(key, "")) for key in slots).lower():
+            observations.append("- Security deposit handling appears to be a central factual issue.")
+    elif category == "Employment dispute":
+        observations.append("- The matter appears to turn on proof of employment, work performed, and month-wise dues trail.")
+        observations.append("- Internal communication with HR or management is likely to be central.")
+    elif category == "Fraud or cheating concern":
+        observations.append("- The matter appears to turn on what representation was made, how it was relied on, and the resulting loss.")
+        observations.append("- Identity trail and transaction chronology will likely carry significant weight.")
+    elif category == "Consumer issue":
+        observations.append("- The matter appears to turn on what was promised, what was delivered, and how the defect or deficiency was documented.")
+    elif category == "Cyber or online harm":
+        observations.append("- The matter appears to turn on digital traceability, transaction identifiers, and speed of evidence preservation.")
+    elif category == "Family or relationship dispute":
+        observations.append("- The matter appears to turn on relationship records, shared household or dependency history, and chronology of events.")
+    elif category == "Contract or payment dispute":
+        observations.append("- The matter appears to turn on the underlying promise, breach event, payment or performance trail, and measurable loss.")
+    else:
+        observations.append(f"- The matter appears to turn on {_category_key_factors(category)}.")
+
+    if not _is_placeholder_value(slots.get("evidence")):
+        observations.append("- There is at least some documentary or digital material already identified in support of the case narrative.")
+    return observations
+
+
+def _report_information_gaps(category: str, slots: Dict[str, str]) -> List[str]:
+    gaps: List[str] = []
+    tracked_slots = [
+        ("incident_location", "Exact incident location is not yet clearly stated."),
+        ("timeline", "A tighter date-wise timeline would improve the report."),
+        ("witnesses", "Witness position is not yet clear."),
+        ("desired_outcome", "The user’s intended outcome is not yet clearly stated."),
+    ]
+    for slot, message in tracked_slots:
+        if _is_placeholder_value(slots.get(slot)):
+            gaps.append(f"- {message}")
+
+    for slot in _REPORT_REQUIRED_BY_CATEGORY.get(category, []):
+        if _is_placeholder_value(slots.get(slot)):
+            gaps.append(f"- {_slot_label(slot)} is still incomplete.")
+
+    if not gaps:
+        gaps.append("- No major factual gaps identified from the current intake record.")
+    return gaps
 
 
 def _build_indian_report_draft(
     category: str, slots: Dict[str, str], retrieval: List[Dict[str, Any]]
 ) -> str:
-    category_specific_labels = {
-        "property_details": "Property details",
-        "agreement_status": "Agreement / tenancy status",
-        "employment_details": "Employment details",
-        "dues_details": "Pending dues details",
-        "counterparty_details": "Counterparty details",
-        "transaction_details": "Transaction details",
-        "seller_service_details": "Seller/service details",
-        "purchase_timeline": "Purchase timeline",
-        "platform_details": "Platform/account details",
-        "digital_trail": "Digital trail",
-    }
-    category_specific_lines: List[str] = []
-    for slot, label in category_specific_labels.items():
-        value = slots.get(slot)
-        if value:
-            category_specific_lines.append(f"- {label}: {value}")
-    if not category_specific_lines:
-        category_specific_lines.append("- No extra category-specific details captured.")
-
-    context_points = []
-    for doc in retrieval[:3]:
-        if doc.get("kind") not in {"uploaded", "law"}:
-            continue
-        text = _sanitize_reference_text(str(doc.get("text", "")))
-        if text:
-            context_points.append(f"- {text[:180]}")
+    context_points = [f"- {text}" for text in _neutral_retrieval_points(retrieval, limit=3)]
     if not context_points:
         context_points.append("- Context based on user-provided facts.")
 
-    report_title = f"SaulGPT Structured Legal Intake Report - {category}"
+    report_title = _report_title(category, slots)
     timeline_text = slots.get("timeline") or slots.get("incident_date") or "Not specified by user"
     witness_text = slots.get("witnesses") or "No witness information provided."
     document_text = slots.get("evidence") or "No document evidence specified."
     background = slots.get("incident_summary") or "Background details were partially provided by the user."
     amount_impact = slots.get("harm_or_amount") or "Impact or amount not clearly specified."
-    outcome = slots.get("desired_outcome") or "Outcome requested by user not fully specified."
+    snapshot_lines = _report_case_snapshot(category, slots)
+    category_lines = _category_specific_lines(category, slots)
+    issue_lines = _report_issue_observations(category, slots)
+    gap_lines = _report_information_gaps(category, slots)
+    objective_line = None if _is_placeholder_value(slots.get("desired_outcome")) else slots.get("desired_outcome")
 
     return (
         f"Title\n{report_title}\n\n"
         "Legal Category\n"
         f"{category}\n\n"
+        "Case Snapshot\n"
+        + "\n".join(snapshot_lines)
+        + "\n\n"
         "Background of the Issue\n"
         f"- Parties: {slots.get('parties', 'Not fully specified')}\n"
         f"- Location: {slots.get('incident_location', 'Not specified')}\n"
         f"- Background summary: {background}\n"
         f"- Reported impact/loss: {amount_impact}\n\n"
+        f"{_category_specific_heading(category)}\n"
+        + "\n".join(category_lines)
+        + "\n\n"
+        "Key Issues Observed\n"
+        + "\n".join(issue_lines)
+        + "\n\n"
         "Summary of Evidence\n"
         + "\n".join(context_points)
         + "\n\n"
@@ -1128,12 +1472,20 @@ def _build_indian_report_draft(
         f"- {witness_text}\n\n"
         "Document Evidence\n"
         f"- {document_text}\n"
-        + "\n".join(category_specific_lines)
         + "\n\n"
         "Timeline of Events\n"
         f"- {timeline_text}\n\n"
         "General Legal Context\n"
         f"{_category_context(category)}\n\n"
+        + (
+            "User Objective\n"
+            f"- {objective_line}\n\n"
+            if objective_line
+            else ""
+        )
+        + "Information Gaps / Clarifications\n"
+        + "\n".join(gap_lines)
+        + "\n\n"
         "Suggested High-Level Next Steps\n"
         + _general_next_steps(category)
         + "\n\n"
@@ -1176,7 +1528,7 @@ def _build_stage1_reply(category: str) -> str:
     return (
         f"{WORKFLOW_STAGE_LABELS[1]}\n"
         f"Category: {category}\n"
-        f"Context: {_category_context(category)}\n"
+        f"{_category_context(category)}\n"
         f"Next: {WORKFLOW_STAGE_LABELS[2]}"
     )
 
@@ -1251,16 +1603,11 @@ def _category_context(category: str) -> str:
         "Defamation or reputation issue": "This usually concerns allegedly harmful statements and whether they caused reputational impact.",
         "Traffic or road incident": "This usually concerns compliance with road-safety rules, incident facts, and responsibility allocation.",
         "FIR and police complaint": (
-            "An FIR (First Information Report) is a written document prepared by the police when they receive information about a cognizable offence. "
-            "Under the Bharatiya Nagarik Suraksha Sanhita 2023 (earlier CrPC), any person can report a cognizable offence at the nearest police station. "
-            "If police refuse to register an FIR, you can approach the Superintendent of Police or file a complaint directly before a Magistrate. "
-            "A 'Zero FIR' can be filed at any police station regardless of jurisdiction, which is then transferred to the appropriate station."
+            "This usually concerns how serious incidents are formally recorded by the police, what factual detail matters at the reporting stage, "
+            "and how chronology, witnesses, and documentary proof affect the complaint process."
         ),
         "Bail and custody": (
-            "Bail is the conditional release of an arrested person pending trial. "
-            "For bailable offences, bail is a right. For non-bailable offences, bail is discretionary and granted by a Magistrate or Sessions Court. "
-            "Anticipatory bail (pre-arrest bail) can be sought from the Sessions Court or High Court when there is a reasonable apprehension of arrest. "
-            "The court considers factors like nature of the offence, prior criminal record, flight risk, and likelihood of tampering with evidence."
+            "This usually concerns custody status, release conditions, risk factors considered by courts, and whether the available facts and records support release."
         ),
         "General criminal concern": "This usually concerns allegations of wrongful conduct, evidence quality, and procedural safeguards under Indian criminal law.",
     }
@@ -1283,6 +1630,44 @@ def _document_observations(retrieval: List[Dict[str, Any]]) -> str:
     return "Document observations:\n" + "\n".join(observations) + "\n\n"
 
 
+def _retrieval_citations(retrieval: List[Dict[str, Any]], top_k: int = 3) -> List[Citation]:
+    citations: List[Citation] = []
+    seen: set[tuple[str, str]] = set()
+
+    for item in retrieval:
+        kind = str(item.get("kind", "")).strip() or "reference"
+        item_id = str(item.get("id", "")).strip() or str(item.get("section", "")).strip()
+        if not item_id:
+            continue
+
+        score = float(item.get("score", 0.0) or 0.0)
+        minimum = 0.12 if kind in {"uploaded", "report"} else 0.17
+        if score < minimum:
+            continue
+
+        dedupe_key = (kind, item_id)
+        if dedupe_key in seen:
+            continue
+        seen.add(dedupe_key)
+
+        text = _sanitize_reference_text(str(item.get("text", "")))
+        citations.append(
+            Citation(
+                kind=kind,
+                id=item_id,
+                section=str(item.get("section", "")).strip() or item_id,
+                text=text[:220],
+                source=str(item.get("source", "")).strip() or "unknown",
+                effective_date=str(item.get("effective_date", "")).strip(),
+                score=round(score, 4),
+            )
+        )
+        if len(citations) >= top_k:
+            break
+
+    return citations
+
+
 def _general_next_steps(category: str) -> str:
     common = [
         "- Build a dated timeline of events in plain language.",
@@ -1301,6 +1686,99 @@ def _general_next_steps(category: str) -> str:
     return "\n".join(common)
 
 
+def _category_key_factors(category: str) -> str:
+    factors = {
+        "Property or tenancy issue": "possession, the written or oral tenancy/title record, payment trail, and communication around notice, deposit, or possession",
+        "Contract or payment dispute": "the promise made, proof of payment or performance, breach chronology, and measurable loss",
+        "Fraud or cheating concern": "what representation was made, how the user relied on it, the money or property trail, and evidence of deception",
+        "Consumer issue": "what was promised, what was delivered, when the defect was reported, and the complaint record",
+        "Employment dispute": "proof of employment, actual work performed, the pay or benefit trail, and employer communication",
+        "Family or relationship dispute": "relationship records, timeline of events, financial dependence, living arrangement, and communication history",
+        "Cyber or online harm": "the digital trail, account or transaction identifiers, chronology of the incident, and preservation of raw evidence",
+        "Defamation or reputation issue": "what was said, where it was published, who saw it, and how the statement caused harm",
+        "Traffic or road incident": "the incident sequence, vehicle details, identity of persons involved, medical or repair records, and witness or camera material",
+        "FIR and police complaint": "clear chronology, identity details, seriousness of the allegation, immediate supporting material, and consistency of the complaint narrative",
+        "Bail and custody": "custody status, seriousness of allegations, personal ties, conduct record, and risk concerns around release",
+        "General criminal concern": "the allegation, timeline, available proof, witness support, and procedural safeguards",
+    }
+    return factors.get(category, "the facts, the timeline, the documents, and whether the available material supports the user’s version clearly")
+
+
+def _comparison_context(category: str) -> Optional[str]:
+    if category == "Property or tenancy issue":
+        return (
+            "In broad terms, tenant-side issues usually concern possession, peaceful use, notice, deposit handling, and protection from arbitrary eviction. "
+            "Owner-side issues usually concern title, rent recovery, damage claims, and lawful recovery of possession."
+        )
+    if category == "Employment dispute":
+        return (
+            "In broad terms, employee-side issues usually concern unpaid dues, unfair process, or workplace treatment. "
+            "Employer-side issues usually concern performance record, policy compliance, and proof of communication."
+        )
+    return None
+
+
+def _document_focus(category: str) -> str:
+    mapping = {
+        "Property or tenancy issue": "Most useful records are the agreement or title papers, payment proof, possession or occupancy proof, municipal or tax records, and message history.",
+        "Contract or payment dispute": "Most useful records are the agreement, invoice or payment proof, delivery or performance record, and all notice or follow-up communication.",
+        "Fraud or cheating concern": "Most useful records are transaction proof, account or identity details, screenshots, call or message history, and any document showing the false representation.",
+        "Consumer issue": "Most useful records are the invoice, warranty or policy terms, defect photos, complaint history, and seller or platform responses.",
+        "Employment dispute": "Most useful records are the offer letter, payslips, bank credits, attendance material, HR mails, and settlement or termination communication.",
+        "Family or relationship dispute": "Most useful records are relationship proof, communication records, financial records, shared household records, and any chronology of incidents.",
+        "Cyber or online harm": "Most useful records are transaction IDs, account screenshots, alerts, raw emails or chats, device logs, and platform or bank complaint references.",
+        "FIR and police complaint": "Most useful records are a date-wise chronology, identity details, medical or damage proof where relevant, witness details, and supporting digital or physical records.",
+    }
+    return mapping.get(category, "Most useful records are the core documents, payment trail, communication history, and a dated timeline.")
+
+
+def _is_action_heavy_text(text: str) -> bool:
+    return bool(
+        re.search(
+            r"\b(?:file|register|lodge|send|approach|apply|call|report|complaint|petition|suit|legal notice|court|magistrate)\b",
+            text,
+            re.IGNORECASE,
+        )
+    )
+
+
+def _neutral_retrieval_points(retrieval: List[Dict[str, Any]], limit: int = 3) -> List[str]:
+    preferred: List[str] = []
+    fallback: List[str] = []
+
+    for item in retrieval:
+        if item.get("kind") not in {"uploaded", "law"}:
+            continue
+        text = _sanitize_reference_text(str(item.get("text", "")))
+        if not text:
+            continue
+        if _is_action_heavy_text(text):
+            fallback.append(text[:180])
+        else:
+            preferred.append(text[:180])
+
+    return (preferred + fallback)[:limit]
+
+
+def _retrieval_takeaways(retrieval: List[Dict[str, Any]], limit: int = 2) -> List[str]:
+    takeaways: List[str] = []
+    for text in _neutral_retrieval_points(retrieval, limit=max(limit + 2, 4)):
+        takeaways.append(text[:190])
+        if len(takeaways) >= limit:
+            break
+    return takeaways
+
+
+def _high_level_steps_line(category: str) -> str:
+    if category == "Cyber or online harm":
+        return "At a high level, preserve the digital trail immediately, keep a clean incident timeline, and verify the reporting path on official channels."
+    if category == "Property or tenancy issue":
+        return "At a high level, organize the property or tenancy papers first, map the payment and possession timeline, and separate facts from assumptions."
+    if category == "Employment dispute":
+        return "At a high level, organize employment records, map the dues month by month, and keep the communication trail clean and dated."
+    return "At a high level, organize the timeline first, gather the main records, and verify the relevant official process before taking decisions."
+
+
 def _build_information_reply(
     message: str, retrieval: List[Dict[str, Any]], history: Optional[List[ChatTurn]] = None
 ) -> str:
@@ -1310,24 +1788,8 @@ def _build_information_reply(
         prior_category = _last_category_from_history(history)
         if prior_category:
             category = prior_category
-    uploaded_items = [d for d in retrieval if d.get("kind") == "uploaded"][:2]
-    law_items = [
-        d
-        for d in retrieval
-        if d.get("kind") == "law" and float(d.get("score", 0.0)) >= 0.18
-    ][:1]
-    context_points: List[str] = []
-    for item in uploaded_items[:1] + law_items:
-        text = _sanitize_reference_text(str(item.get("text", "")))
-        if text:
-            if item.get("kind") == "uploaded":
-                context_points.append(f"- Uploaded document context: {text[:180]}")
-            else:
-                context_points.append(f"- General legal context: {text[:180]}")
-    summary_context = context_points[0][2:] if context_points else "No close document match yet."
-    secondary_context = context_points[1][2:] if len(context_points) > 1 else ""
-
     lower_message = message.lower()
+    asks_comparison = bool(re.search(r"\b(vs|versus|difference|compare|comparison)\b", lower_message))
     asks_general_info = bool(
         re.search(
             r"\b(explain|overview|difference|what is|what are|how do i prove|what documents should|what details should|what should i do|checklist|preserve|guide)\b",
@@ -1344,24 +1806,60 @@ def _build_information_reply(
             message=message,
             history=history,
             category=category,
-            has_uploaded=bool(uploaded_items),
+            has_uploaded=any(item.get("kind") == "uploaded" for item in retrieval),
         )[:2]
 
-    lines = [
-        f"Category: {category}",
-        f"General context: {_category_context(category)}",
+    asks_steps = bool(re.search(r"\b(next step|next steps|what should i do|how should i proceed|guide)\b", lower_message))
+    asks_documents = bool(re.search(r"\b(document|documents|checklist|proof|evidence|records)\b", lower_message))
+    asks_report = bool(re.search(r"\b(report|draft|format|complaint)\b", lower_message))
+    has_uploaded = any(item.get("kind") == "uploaded" for item in retrieval)
+    takeaways = _retrieval_takeaways(retrieval, limit=2)
+    variant = _style_variant(message, history)
+    opening_lines = [
+        f"This falls under {category.lower()}.",
+        f"On these facts, the issue is mainly {category.lower()}.",
+        f"The legal category here is {category.lower()}.",
     ]
-    if summary_context:
-        lines.append(f"Relevant context: {summary_context}")
-    if secondary_context:
-        lines.append(f"Also relevant: {secondary_context}")
+
+    lines = [opening_lines[variant]]
+
+    comparison_line = _comparison_context(category) if asks_comparison else None
+    if comparison_line:
+        lines.append(comparison_line)
+    else:
+        lines.append(f"In practice, this usually turns on {_category_key_factors(category)}.")
+
+    if takeaways:
+        lines.append(f"Relevant context: {takeaways[0]}")
+        if len(takeaways) > 1 and (asks_general_info or asks_documents or asks_steps):
+            lines.append(f"Also relevant: {takeaways[1]}")
+
+    if has_uploaded and (_context_dependent_query(message) or asks_report or asks_documents):
+        lines.append("I can also work from the uploaded material already in the case record, not just the statutory database.")
+
+    if asks_documents:
+        lines.append(_document_focus(category))
+    elif asks_steps:
+        lines.append(_high_level_steps_line(category))
+    elif asks_general_info:
+        lines.append(_category_context(category))
 
     if questions:
-        lines.append("To answer precisely, share:")
+        lines.append("To make this specific, I only need:")
         for index, question in enumerate(questions, start=1):
             lines.append(f"{index}. {question}")
+    elif asks_report:
+        lines.append("If you want, I can turn this into a structured case report and only flag the facts that are still missing.")
     else:
-        lines.append("If you want a structured case report, say: Generate report.")
+        closing_lines = [
+            "If you want, I can go one level deeper on the legal context or switch into report-building mode.",
+            "If useful, I can now narrow this down with one or two focused questions or draft a report from the current facts.",
+            "If you want to continue, I can either explain the legal position further or convert this into a structured case summary.",
+        ]
+        lines.append(closing_lines[variant])
+
+    if asks_steps or asks_documents or questions or asks_report:
+        lines.append(NON_ADVICE_NOTE)
 
     return "\n".join(lines)
 
@@ -1514,6 +2012,30 @@ def _build_context_block(context_docs: List[Dict[str, Any]]) -> str:
     return "\n".join(context_lines)
 
 
+def _ollama_chat_enabled() -> bool:
+    global _ollama_available_cache, _ollama_last_check_at
+
+    if OLLAMA_CHAT_MODE in {"0", "false", "off", "no"}:
+        return False
+    if OLLAMA_CHAT_MODE in {"1", "true", "on", "yes"}:
+        return True
+
+    now = time.time()
+    if (
+        _ollama_available_cache is not None
+        and now - _ollama_last_check_at < OLLAMA_DISCOVERY_TTL_SECONDS
+    ):
+        return _ollama_available_cache
+
+    try:
+        response = requests.get(OLLAMA_TAGS_URL, timeout=1.0)
+        _ollama_available_cache = response.ok
+    except requests.RequestException:
+        _ollama_available_cache = False
+    _ollama_last_check_at = now
+    return bool(_ollama_available_cache)
+
+
 def _call_ollama_text(prompt: str, num_predict: int) -> str:
     last_error: Optional[Exception] = None
 
@@ -1553,15 +2075,22 @@ def _chat_prompt(message: str, history: List[ChatTurn], context_docs: List[Dict[
     history_block = "\n".join(history_lines) if history_lines else "No prior context."
 
     return f"""
-You are SaulGPT, a legal information assistant for Indian law.
+You are SaulGPT, a highly capable Indian-law legal information and drafting assistant.
 Follow these rules strictly:
 - Do NOT provide specific legal advice.
 - Do NOT cite exact sections, statute numbers, or legal provisions.
 - Do NOT instruct the user to take specific legal action.
 - Do NOT present yourself as a lawyer or legal authority.
-- Be concise and direct. No fluff.
+- Sound like a sharp legal analyst: direct, grounded, clear, interactive, and concise.
+- Respond with ChatGPT-like quality: adapt to the user, avoid template language, and do not pad the answer.
 - If the user message depends on prior context, use earlier details.
+- If the user asks a broad legal question, answer it first instead of interrogating the user.
+- If the user is discussing a real case, identify what legally matters and ask only the next missing facts.
 - Ask at most two focused follow-up questions only when required.
+- Do not repeat questions already answered in the conversation.
+- If the user wants a report and the facts are already sufficient, generate it instead of asking more questions.
+- Prefer short paragraphs. Use bullets only for checklists or stepwise guidance.
+- Use uploaded documents as part of the case record when they are present in the references.
 
 Use these references first:
 {_build_context_block(context_docs)}
@@ -1573,21 +2102,23 @@ User message:
 {message}
 
 Output format:
-- Category: <short>
-- Context: <1-2 lines>
-- Relevant context: <optional 1 line>
-- Questions: <0-2 numbered only if missing facts>
-Keep total length under 120 words.
+- Start with the direct answer, not labels.
+- Identify the likely legal category naturally in the answer.
+- Use retrieved material when relevant.
+- Ask 0-2 numbered follow-up questions only if missing facts are essential.
+- Keep it concise, informative, and human.
+- Keep total length under 220 words unless the user asks for a report.
 """.strip()
 
 
 def _build_generate_prompt(data: CaseRequest, context_docs: List[Dict[str, Any]]) -> str:
     return f"""
-You are SaulGPT, a legal information assistant for Indian law.
-You must provide only high-level legal information.
+You are SaulGPT, a highly capable Indian-law legal information and drafting assistant.
+Provide grounded, practical legal information in a professional tone.
 Do not provide specific legal advice.
 Do not cite exact section numbers or statute provisions.
 Do not recommend specific legal actions.
+Be direct and concise. Avoid boilerplate and unnecessary disclaimer text.
 
 Retrieved legal context:
 {_build_context_block(context_docs)}
@@ -1597,12 +2128,12 @@ Case details:
 - Incident: {data.incident}
 - Amount involved: {data.amount or "Not specified"}
 
-Output format:
-- Likely legal category
-- General legal context
-- High-level guidance
-- General next steps
-- Disclaimer (only if the response includes actionable guidance)
+Write a direct answer that:
+- identifies the likely legal category
+- explains the general legal context in plain English
+- gives high-level guidance only
+- gives short next steps only if useful
+- sounds natural, not robotic
 """.strip()
 
 
@@ -1721,6 +2252,8 @@ def health() -> Dict[str, Any]:
         "model_candidates": MODEL_CANDIDATES,
         "timeout_seconds": OLLAMA_TIMEOUT_SECONDS,
         "chat_cache_ttl_seconds": CHAT_CACHE_TTL_SECONDS,
+        "ollama_chat_mode": OLLAMA_CHAT_MODE,
+        "ollama_chat_enabled": _ollama_chat_enabled(),
     }
 
 
@@ -1733,7 +2266,7 @@ def generate(data: CaseRequest, request: Request, x_api_key: Optional[str] = Hea
     query = f"{data.case_type} {data.incident} {data.amount or ''}".strip()
     retrieval = search_knowledge(query, top_k=7)
     draft = _build_information_reply(query, retrieval, history=[])
-    if USE_OLLAMA_CHAT:
+    if _ollama_chat_enabled():
         try:
             llm_text = _call_ollama_text(
                 _build_generate_prompt(data, retrieval),
@@ -1746,7 +2279,7 @@ def generate(data: CaseRequest, request: Request, x_api_key: Optional[str] = Hea
 
     return GenerateResponse(
         draft=_clean_reply(draft),
-        citations=[],
+        citations=_retrieval_citations(retrieval),
         disclaimer=_disclaimer(),
     )
 
@@ -1825,19 +2358,27 @@ def chat(data: ChatRequest, request: Request, x_api_key: Optional[str] = Header(
             message=data.message,
         )
         requested_report_now = bool(_REPORT_GENERATE_RE.search(data.message.lower()))
+        force_report_generation = _should_force_report_generation(
+            category=category,
+            slots=slots,
+            message=data.message,
+            history=data.history,
+        )
         report_generated = False
         facts = _workflow_collected_facts(slots)
         has_any_fact = bool(facts)
 
-        if ready_for_report:
+        if ready_for_report or force_report_generation:
             report_generated = True
-            report_text = _build_indian_report_draft(category, slots, retrieval)
+            finalized_slots = _finalize_report_slots(category, slots)
+            report_text = _build_indian_report_draft(category, finalized_slots, retrieval)
             reply = (
                 f"{WORKFLOW_STAGE_LABELS[3]}\n\n"
                 f"{report_text}\n\n"
                 f"{_build_stage4_next_steps(category)}"
             )
             missing_slots = []
+            facts = _workflow_collected_facts(finalized_slots)
         elif requested_report_now:
             questions = _next_report_questions(category, missing_slots, data.history)
             reply = _build_report_intake_reply(
@@ -1887,7 +2428,7 @@ def chat(data: ChatRequest, request: Request, x_api_key: Optional[str] = Header(
 
         response = ChatResponse(
             reply=_clean_reply(reply),
-            citations=[],
+            citations=_retrieval_citations(retrieval),
             redirected_to_law=False,
             disclaimer=_disclaimer(),
             case_workflow=workflow,
@@ -1897,7 +2438,7 @@ def chat(data: ChatRequest, request: Request, x_api_key: Optional[str] = Header(
 
     reply = _build_information_reply(data.message, retrieval, data.history)
 
-    if USE_OLLAMA_CHAT:
+    if _ollama_chat_enabled():
         try:
             llm_text = _call_ollama_text(
                 _chat_prompt(data.message, data.history, retrieval),
@@ -1910,7 +2451,7 @@ def chat(data: ChatRequest, request: Request, x_api_key: Optional[str] = Header(
 
     response = ChatResponse(
         reply=_finalize_chat_reply(data.message, reply, data.history, retrieval),
-        citations=[],
+        citations=_retrieval_citations(retrieval),
         redirected_to_law=False,
         disclaimer=_disclaimer(),
         case_workflow=CaseWorkflow(

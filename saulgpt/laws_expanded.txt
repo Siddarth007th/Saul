@@ -11,6 +11,7 @@ General Intake Playbook - Limitation | Delay can weaken claims; keep first incid
 General Intake Playbook - Communication | Use clear and factual communication with dates, amounts, and specific requests instead of emotional language. | SaulGPT Expanded Legal Playbook | 2026-03-10
 General Intake Playbook - Drafting Style | Strong legal drafts use neutral tone, chronological facts, numbered points, document references, and precise relief sought. | SaulGPT Expanded Legal Playbook | 2026-03-10
 General Intake Playbook - Risk Flags | Risk increases when there is no written agreement, cash-only transactions, missing IDs, or contradictory messages. | SaulGPT Expanded Legal Playbook | 2026-03-10
+General Intake Playbook - Civilian Legal Questions | Citizen-facing legal questions are best answered by identifying the issue category, what facts matter, what records matter, and what official process is usually involved. | SaulGPT Expanded Legal Playbook | 2026-03-13
 
 Property Guide - Ownership Proof | Ownership disputes usually require title chain, registration records, mutation, tax receipts, possession proof, and encumbrance history. | SaulGPT Property Playbook | 2026-03-10
 Property Guide - Boundary Dispute | Boundary conflicts are easier to assess with survey maps, measurement records, site photographs, and neighbor statements. | SaulGPT Property Playbook | 2026-03-10
@@ -32,6 +33,9 @@ Property Guide - Inherited Property | Inheritance property disputes need success
 Property Guide - Municipal Records | Property records from local authorities help verify assessment number, ownership entries, and pending dues. | SaulGPT Property Playbook | 2026-03-10
 Property Guide - Registry Mismatch | Registry mismatch issues arise when names, boundaries, area values, or consideration amounts differ across records. | SaulGPT Property Playbook | 2026-03-10
 Property Guide - Evidence Matrix | Property case matrix should map each claim to one document, one timeline point, and one corroborating communication. | SaulGPT Property Playbook | 2026-03-10
+Property Guide - Rental Law Overview | Rental and tenancy questions usually turn on possession, agreement terms, rent and deposit history, notice communication, and state-specific landlord-tenant protections. | SaulGPT Property Playbook | 2026-03-13
+Property Guide - Tenant vs Owner Positions | Tenant-side disputes usually center on peaceful occupation, deposit handling, notice, and protection against arbitrary eviction. Owner-side disputes usually center on title, rent recovery, property damage, and lawful recovery of possession. | SaulGPT Property Playbook | 2026-03-13
+Property Guide - Land Ownership Overview | Land ownership analysis usually begins with title chain, registration history, mutation entries, tax records, possession proof, and boundary consistency across records. | SaulGPT Property Playbook | 2026-03-13
 
 Employment Guide - Unpaid Salary | Unpaid salary disputes depend on appointment records, attendance proof, payslip gaps, payment mode, and demand communications. | SaulGPT Employment Playbook | 2026-03-10
 Employment Guide - Wrongful Termination | Termination conflicts are assessed using contract terms, performance records, HR notices, and internal hearing history. | SaulGPT Employment Playbook | 2026-03-10
@@ -48,6 +52,7 @@ Employment Guide - Service Certificate | Delayed relieving and service certifica
 Employment Guide - Disciplinary Action | Discipline-related disputes require charge memo details, reply timeline, inquiry records, and proportionality analysis. | SaulGPT Employment Playbook | 2026-03-10
 Employment Guide - Leave and Benefits | Benefit disputes are easier to evaluate with leave balance snapshots, policy extracts, and payroll ledger. | SaulGPT Employment Playbook | 2026-03-10
 Employment Guide - Documentation Checklist | Keep offer letter, increments, payslips, bank credits, tax records, role descriptions, and HR communication. | SaulGPT Employment Playbook | 2026-03-10
+Employment Guide - Salary Rights Overview | Salary disputes usually depend on proof of employment, actual work done, agreed pay cycle, deductions trail, and whether the employer recorded or disputed the dues. | SaulGPT Employment Playbook | 2026-03-13
 
 Consumer Guide - Defective Product | Product defect claims require invoice, warranty terms, defect proof photos, and seller service history. | SaulGPT Consumer Playbook | 2026-03-10
 Consumer Guide - Service Deficiency | Service deficiency disputes rely on promised service scope, delivery gaps, and complaint response timeline. | SaulGPT Consumer Playbook | 2026-03-10
@@ -61,6 +66,7 @@ Consumer Guide - Motor Vehicle Defect | Vehicle defect matters should include se
 Consumer Guide - Product Return Refusal | Return refusal disputes require return policy snapshot, request date, refusal reason, and condition evidence. | SaulGPT Consumer Playbook | 2026-03-10
 Consumer Guide - Misleading Advertisement | Misrepresentation claims need captured ad copy, purchase decision link, and actual product mismatch proof. | SaulGPT Consumer Playbook | 2026-03-10
 Consumer Guide - Utility Overbilling | Utility disputes require meter records, prior bill baseline, and anomaly period mapping. | SaulGPT Consumer Playbook | 2026-03-10
+Consumer Guide - Consumer Rights Overview | Consumer disputes generally assess whether goods or services matched what was promised, whether the defect or deficiency was documented promptly, and what records support the complaint. | SaulGPT Consumer Playbook | 2026-03-13
 
 Family Guide - Matrimonial Conflict | Matrimonial disputes are framed around timeline of events, cohabitation history, communications, and safety concerns. | SaulGPT Family Playbook | 2026-03-10
 Family Guide - Maintenance Dispute | Maintenance matters need income indicators of both sides, dependents details, and expense breakdowns. | SaulGPT Family Playbook | 2026-03-10
@@ -74,6 +80,7 @@ Family Guide - Senior Citizen Property | Senior citizen property issues require 
 Family Guide - Shared Household | Shared household disputes need occupancy history, contribution records, and incident communications. | SaulGPT Family Playbook | 2026-03-10
 Family Guide - Marriage Proof | Relationship status evidence may include marriage certificate, ceremony records, photos, and joint documents. | SaulGPT Family Playbook | 2026-03-10
 Family Guide - Separation Timeline | Separation matters should track date of separation, reasons, and post-separation financial arrangements. | SaulGPT Family Playbook | 2026-03-10
+Family Guide - Family Dispute Overview | Family disputes usually depend on relationship records, financial dependence, shared household history, communication timeline, and any safety concerns. | SaulGPT Family Playbook | 2026-03-13
 
 Criminal Guide - Assault Incident | Assault complaints should include exact time, place, sequence, injuries, medical records, and witnesses. | SaulGPT Criminal Playbook | 2026-03-10
 Criminal Guide - Threat and Intimidation | Threat cases need exact words used, medium of communication, frequency, and impact on safety. | SaulGPT Criminal Playbook | 2026-03-10
@@ -87,6 +94,7 @@ Criminal Guide - FIR Readiness | FIR readiness improves with concise facts, accu
 Criminal Guide - Police Follow-up | Maintain a log of complaint date, diary entry details, officer interactions, and next communication dates. | SaulGPT Criminal Playbook | 2026-03-10
 Criminal Guide - Bail Preparation | Bail support materials include identity proof, local ties, prior cooperation, and non-interference assurances. | SaulGPT Criminal Playbook | 2026-03-10
 Criminal Guide - Charge Review | Charge analysis should map each allegation to factual event and available supporting records. | SaulGPT Criminal Playbook | 2026-03-10
+Criminal Guide - Police Complaint Overview | Police complaint issues usually focus on factual clarity, seriousness of the allegation, chronology, identity details, and whether the available material supports immediate recording and follow-up. | SaulGPT Criminal Playbook | 2026-03-13
 
 Cyber Guide - UPI Fraud | UPI fraud cases need transaction IDs, account screenshots, call logs, and bank complaint reference numbers. | SaulGPT Cyber Playbook | 2026-03-10
 Cyber Guide - OTP Scam | OTP scam documentation should capture call details, messages, account alerts, and unauthorized transfers. | SaulGPT Cyber Playbook | 2026-03-10
@@ -98,6 +106,7 @@ Cyber Guide - Data Misuse | Data misuse disputes need evidence of unauthorized d
 Cyber Guide - Evidence Preservation | Preserve chat exports, device logs, raw emails with headers, and unedited screenshots with timestamps. | SaulGPT Cyber Playbook | 2026-03-10
 Cyber Guide - Reporting Sequence | For digital fraud, parallel documentation to bank, platform, and cyber reporting channels is typically useful. | SaulGPT Cyber Playbook | 2026-03-10
 Cyber Guide - Recovery Preparedness | Recovery attempts are stronger with immediate timeline, account freeze requests, and clear loss computation. | SaulGPT Cyber Playbook | 2026-03-10
+Cyber Guide - Online Fraud Overview | Online fraud analysis usually turns on the transaction trail, deception pattern, reporting speed, account identifiers, and how well digital evidence was preserved. | SaulGPT Cyber Playbook | 2026-03-13
 
 Contract Guide - Breach Analysis | Breach disputes should identify contract promise, breach event, notice timeline, and quantifiable loss. | SaulGPT Contract Playbook | 2026-03-10
 Contract Guide - Service Agreement | Service disputes require scope definition, delivery milestones, acceptance standards, and payment triggers. | SaulGPT Contract Playbook | 2026-03-10
@@ -109,6 +118,7 @@ Contract Guide - Settlement Drafting | Settlement drafts work best with admitted
 Contract Guide - Damages Estimation | Damages should be tied to invoices, replacement cost, loss of use, and mitigation attempts. | SaulGPT Contract Playbook | 2026-03-10
 Contract Guide - Oral Contract Evidence | Oral contract disputes rely on conduct, partial performance, payment trail, and corroborative communications. | SaulGPT Contract Playbook | 2026-03-10
 Contract Guide - Business Partnership Exit | Exit disputes need contribution records, profit ledger, liabilities list, and dissolution communication. | SaulGPT Contract Playbook | 2026-03-10
+Contract Guide - Contract Dispute Overview | Contract disputes usually turn on the promise made, breach event, payment or performance trail, notice communication, and measurable loss. | SaulGPT Contract Playbook | 2026-03-13
 
 Drafting Guide - Complaint Format | Complaint drafts should use heading, parties, facts, evidence list, timeline, and clear relief request. | SaulGPT Drafting Playbook | 2026-03-10
 Drafting Guide - Report Format | A usable case report includes title, category, background, evidence summary, witness info, timeline, and next steps. | SaulGPT Drafting Playbook | 2026-03-10
